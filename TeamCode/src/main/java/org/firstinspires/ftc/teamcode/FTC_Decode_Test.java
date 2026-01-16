@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.robot.RobotState;
@@ -7,9 +9,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
 @TeleOp(name = "FTC Decode Test", group = "TeleOp")
 public class FTC_Decode_Test extends OpMode {
-// test
+
     private enum RobotState {
         IDLE,
         INTAKING,
@@ -25,6 +31,9 @@ public class FTC_Decode_Test extends OpMode {
     RobotState robotState;
 
     FeederState feederState;
+
+    private Limelight3A limelight;
+
 
     // Fahrmotoren
     DcMotor frontLeft;
@@ -45,7 +54,7 @@ public class FTC_Decode_Test extends OpMode {
 
     Servo hood;
 
-    Servo feeder_stop;
+    //Servo feeder_stop;
 
 
     Servo feeder_servo;
@@ -91,9 +100,22 @@ public class FTC_Decode_Test extends OpMode {
     boolean lastUpState = false;
     boolean lastDownState = false;
 
+    boolean red = true;
+
+    //Pose2D targetPos;
+    double targetX = 1.83;
+    double targetY = 1.83;
+
+    boolean manualOverride = false;
+
+
+
+
 
     @Override
     public void init() {
+        limelight = hardwareMap.get(Limelight3A.class,"limelight");
+
         frontLeft  = hardwareMap.dcMotor.get("frontLeft");
         frontRight = hardwareMap.dcMotor.get("frontRight");
         backLeft   = hardwareMap.dcMotor.get("backLeft");
@@ -101,7 +123,7 @@ public class FTC_Decode_Test extends OpMode {
 
         hood = hardwareMap.get(Servo.class, "hood");
         feeder_servo = hardwareMap.get(Servo.class, "feeder_servo");
-        feeder_stop = hardwareMap.get(Servo.class, "feeder_stop");
+        //feeder_stop = hardwareMap.get(Servo.class, "feeder_stop");
         intake = hardwareMap.dcMotor.get("intake");
 
         transfer = hardwareMap.dcMotor.get("transfer");
@@ -129,21 +151,70 @@ public class FTC_Decode_Test extends OpMode {
 
         feederState = FeederState.IDLE;
 
+        if(red) {
+            //targetPos = new Pose2D(DistanceUnit.METER,2,-2,UNIT);
+            targetX *= -1;
+        }
+
+        telemetry.setMsTransmissionInterval(11);
+        limelight.pipelineSwitch(1);
+        limelight.start();
+
     }
 
     @Override
     public void loop() {
-
         // Joystick Werte
         double y = gamepad1.left_stick_y;   // vor/zurück
         double x = -gamepad1.left_stick_x;    // strafe
         double rx = -gamepad1.right_stick_x;  // drehen
 
-        if (robotState == RobotState.SHOOTING){ // slow down rotation
-            rx *= 0.3;
-        } else {
-            rx *= 0.6;
+        LLResult result = limelight.getLatestResult();
+        if(result != null) {
+            if(result.isValid()) {
+                Pose3D botpose = result.getBotpose();
+                double robotX = botpose.getPosition().x;
+                double robotY = botpose.getPosition().y;
+                double robotYaw = botpose.getOrientation().getYaw();
+
+                double dX = targetX - robotX;
+                double dY = targetY - robotY;
+
+                double distance = Math.sqrt(dX*dX + dY*dY);
+
+                double targetHeading = Math.toDegrees(Math.atan2(dY,dX));
+
+                double headingError = targetHeading - robotYaw;
+                if(headingError >= 360.0) {
+                    headingError -= 360;
+                }
+
+                boolean currentYState = gamepad1.y;
+
+                if (currentYState && !lastYState) {
+                    manualOverride = !manualOverride;
+                }
+
+
+                telemetry.addData("Robot x",robotX);
+                telemetry.addData("Robot y",robotY);
+                telemetry.addData("Robot yaw",robotYaw);
+                telemetry.addData("Distance",distance);
+                telemetry.addData("Target Heading",targetHeading);
+                telemetry.addData("Heading Error",headingError);
+
+                if (robotState == RobotState.SHOOTING){ // slow down rotation
+                    rx = headingError * 0.025;
+                }
+
+                shooterPower = 0.645 + distance*0.091;
+                hoodPosition = 0.782 + distance*0.027;
+
+            }
         }
+
+
+
 
         // Mecanum Berechnung
         double fl = y + x + rx;
@@ -259,7 +330,7 @@ public class FTC_Decode_Test extends OpMode {
 
         // ---- Shooter Hood Adjustement
         double step_size = 0.025;
-        if (gamepad1.right_bumper && !lastRBState) {
+        if (gamepad1.right_bumper && !lastRBState && manualOverride) {
             if (hoodPosition >= hoodMax) {
                 hoodPosition = hoodMax;
             } else if (hoodPosition == hoodMin){
@@ -269,7 +340,7 @@ public class FTC_Decode_Test extends OpMode {
             }
         }
 
-        if (gamepad1.left_bumper && !lastLBState) {
+        if (gamepad1.left_bumper && !lastLBState && manualOverride) {
             if (hoodPosition <= hoodMin) {
                 hoodPosition = hoodMin;
             } else if (hoodPosition - step_size < hoodMin){
@@ -287,7 +358,7 @@ public class FTC_Decode_Test extends OpMode {
 
         // ---- Shooter Power Adjustement
         double step_size_shooter = 0.05;
-        if (gamepad1.dpad_up && !lastUpState) {
+        if (gamepad1.dpad_up && !lastUpState && manualOverride) {
             if (shooterPower >= shooterMax) {
                 shooterPower = shooterMax;
             } else {
@@ -295,7 +366,7 @@ public class FTC_Decode_Test extends OpMode {
             }
         }
 
-        if (gamepad1.dpad_down && !lastDownState) {
+        if (gamepad1.dpad_down && !lastDownState && manualOverride) {
             if (shooterPower <= shooterMin) {
                 shooterPower = shooterMin;
             } else {
@@ -346,6 +417,7 @@ public class FTC_Decode_Test extends OpMode {
         // Telemetrie
         telemetry.addData("Robot State", robotState);
         telemetry.addData("Feeder State", feederState);
+        telemetry.addData("Manual Override", manualOverride);
         telemetry.addData("hood Servo Position", hoodPosition);
         telemetry.addData("power shooter", shooterPower);
         telemetry.addData("elapsed time", runtime.seconds());
