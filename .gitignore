@@ -79,3 +79,4 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+/Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt
