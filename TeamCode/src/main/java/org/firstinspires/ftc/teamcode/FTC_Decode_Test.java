@@ -1,20 +1,37 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.util.InterpLUT;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @TeleOp(name = "FTC Decode Test", group = "TeleOp")
 public class FTC_Decode_Test extends OpMode {
+
+    @IgnoreConfigurable
+    static TelemetryManager telemetryM;
 
     private enum RobotState {
         IDLE,
@@ -27,6 +44,9 @@ public class FTC_Decode_Test extends OpMode {
         EXTENDING,
         RETRACTING
     }
+
+    InterpLUT shooterVelocityLUT = new InterpLUT();
+    InterpLUT hoodPositionLUT = new InterpLUT();
 
     RobotState robotState;
 
@@ -48,8 +68,11 @@ public class FTC_Decode_Test extends OpMode {
     DcMotor transfer;
 
     // Shooter Motor
-    DcMotor shooterLeft;
-    DcMotor shooterRight;
+
+    //private MotorGroup shooter;
+
+    DcMotorEx shooterLeft;
+    DcMotorEx shooterRight;
 
 
     Servo hood;
@@ -71,10 +94,10 @@ public class FTC_Decode_Test extends OpMode {
     boolean shooterOn = false;
     boolean lastXState = false;
 
-    double feederRetracted = 1.0;
-    double feederExtended = 0.7;
-    double feederTime = 0.3; // in seconds
-    double feederIdleTime = 0.7; // time the feeder has to wait for ball to come into position
+    double feederRetracted = 0.95; // 0.95
+    double feederExtended = 0.6;
+    double feederTime = 0.12; // in seconds              0.3
+    double feederIdleTime = 0.15; // time the feeder has to wait for ball to come into position  0.7
     double feederStartTime = 0.0;
 
     boolean lastYState = false;
@@ -87,9 +110,15 @@ public class FTC_Decode_Test extends OpMode {
     boolean lastRBState = false;
     boolean lastLBState = false;
 
-    double shooterPower = 0.5;
-    double shooterMin = 0.3;
-    double shooterMax = 1.0;
+    double shooterVelocity = 3000;
+    double shooterMin = 2000;
+    double shooterMax = 4000;
+
+    // shooter PID
+    double shooter_kP = 20;
+    double shooter_kF = 0.7;
+
+    double shooterCPR = 28;
 
     double intakePower = 1.0;
     double transferPower = 1.0;
@@ -128,8 +157,9 @@ public class FTC_Decode_Test extends OpMode {
 
         transfer = hardwareMap.dcMotor.get("transfer");
 
-        shooterLeft = hardwareMap.dcMotor.get("shooterLeft");
-        shooterRight = hardwareMap.dcMotor.get("shooterRight");
+        shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
+        shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
+
 
         // Motor-Richtungen (typisch für Mecanum)
         frontLeft.setDirection(DcMotor.Direction.FORWARD);
@@ -141,8 +171,18 @@ public class FTC_Decode_Test extends OpMode {
         transfer.setDirection(DcMotor.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.FORWARD);
 
-        shooterRight.setDirection(DcMotor.Direction.FORWARD);
-        shooterLeft.setDirection(DcMotor.Direction.REVERSE);
+        shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
+
+        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        shooterLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        shooterRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+
+        PIDFCoefficients shooterPIDF = new PIDFCoefficients(shooter_kP, 0, 0, shooter_kF);
+
+
 
         hood.setPosition(hoodPosition);
         feeder_servo.setPosition(feederRetracted);
@@ -155,6 +195,54 @@ public class FTC_Decode_Test extends OpMode {
             //targetPos = new Pose2D(DistanceUnit.METER,2,-2,UNIT);
             targetX *= -1;
         }
+
+        // add LUT points
+        hoodPositionLUT.add(0.0,0.6);
+        shooterVelocityLUT.add(0.0,2750);
+        hoodPositionLUT.add(0.75,0.425);
+        shooterVelocityLUT.add(0.75,2500);
+        hoodPositionLUT.add(0.9,0.6);
+        shooterVelocityLUT.add(0.9,2750);
+        hoodPositionLUT.add(1.2,0.6);
+        shooterVelocityLUT.add(1.2,2750);
+        hoodPositionLUT.add(1.3,0.675);
+        shooterVelocityLUT.add(1.3,2750);
+        hoodPositionLUT.add(1.4,0.725);
+        shooterVelocityLUT.add(1.4,3000);
+        hoodPositionLUT.add(1.5,0.75);
+        shooterVelocityLUT.add(1.5,3000);
+        hoodPositionLUT.add(1.6,0.75);
+        shooterVelocityLUT.add(1.6,3000);
+        hoodPositionLUT.add(1.7,0.775);
+        shooterVelocityLUT.add(1.7,3000);
+        hoodPositionLUT.add(1.8,0.775);
+        shooterVelocityLUT.add(1.8,3100);
+        hoodPositionLUT.add(1.9,0.775);
+        shooterVelocityLUT.add(1.9,3150);
+        hoodPositionLUT.add(2.0,0.775);
+        shooterVelocityLUT.add(2.0,3250);
+        hoodPositionLUT.add(2.1,0.8);
+        shooterVelocityLUT.add(2.1,3250);
+        hoodPositionLUT.add(2.2,0.8);
+        shooterVelocityLUT.add(2.2,3250);
+        hoodPositionLUT.add(2.3,0.825);
+        shooterVelocityLUT.add(2.3,3300);
+        hoodPositionLUT.add(2.4,0.85);
+        shooterVelocityLUT.add(2.4,3350);
+        hoodPositionLUT.add(2.5,0.85);
+        shooterVelocityLUT.add(2.5,3500);
+        hoodPositionLUT.add(2.6,0.85);
+        shooterVelocityLUT.add(2.6,3500);
+        hoodPositionLUT.add(2.7,0.85);
+        shooterVelocityLUT.add(2.7,3500);
+        hoodPositionLUT.add(3.7,0.875);
+        shooterVelocityLUT.add(3.7,4000);
+        hoodPositionLUT.add(10.0,0.875);
+        shooterVelocityLUT.add(10.0,4000);
+
+        //generating final equation
+        hoodPositionLUT.createLUT();
+        shooterVelocityLUT.createLUT();
 
         telemetry.setMsTransmissionInterval(11);
         limelight.pipelineSwitch(1);
@@ -189,12 +277,6 @@ public class FTC_Decode_Test extends OpMode {
                     headingError -= 360;
                 }
 
-                boolean currentYState = gamepad1.y;
-
-                if (currentYState && !lastYState) {
-                    manualOverride = !manualOverride;
-                }
-
 
                 telemetry.addData("Robot x",robotX);
                 telemetry.addData("Robot y",robotY);
@@ -207,9 +289,10 @@ public class FTC_Decode_Test extends OpMode {
                     rx = headingError * 0.025;
                 }
 
-                shooterPower = 0.645 + distance*0.091;
-                hoodPosition = 0.782 + distance*0.027;
-
+                if(!manualOverride) {
+                    shooterVelocity = shooterVelocityLUT.get(distance);
+                    hoodPosition = hoodPositionLUT.get(distance);
+                }
             }
         }
 
@@ -328,6 +411,15 @@ public class FTC_Decode_Test extends OpMode {
 
         lastXState = currentXState;
 
+        boolean currentYState = gamepad1.y;
+
+        if (currentYState && !lastYState) {
+            manualOverride = !manualOverride;
+        }
+
+        lastYState = currentYState;
+
+
         // ---- Shooter Hood Adjustement
         double step_size = 0.025;
         if (gamepad1.right_bumper && !lastRBState && manualOverride) {
@@ -357,25 +449,26 @@ public class FTC_Decode_Test extends OpMode {
 
 
         // ---- Shooter Power Adjustement
-        double step_size_shooter = 0.05;
+        double step_size_shooter = 250;
         if (gamepad1.dpad_up && !lastUpState && manualOverride) {
-            if (shooterPower >= shooterMax) {
-                shooterPower = shooterMax;
+            if (shooterVelocity >= shooterMax) {
+                shooterVelocity = shooterMax;
             } else {
-                shooterPower += step_size_shooter;
+                shooterVelocity += step_size_shooter;
             }
         }
 
         if (gamepad1.dpad_down && !lastDownState && manualOverride) {
-            if (shooterPower <= shooterMin) {
-                shooterPower = shooterMin;
+            if (shooterVelocity <= shooterMin) {
+                shooterVelocity = shooterMin;
             } else {
-                shooterPower -= step_size_shooter;
+                shooterVelocity -= step_size_shooter;
             }
         }
 
         lastUpState = gamepad1.dpad_up;
         lastDownState = gamepad1.dpad_down;
+
 
         // ---- Robot State Machine
         if (feederState == FeederState.IDLE) {
@@ -395,8 +488,8 @@ public class FTC_Decode_Test extends OpMode {
                 case SHOOTING:
                     intake.setPower(intakePowerFeeding);
                     transfer.setPower(transferPowerFeeding);
-                    shooterLeft.setPower(shooterPower);
-                    shooterRight.setPower(shooterPower);
+                    shooterLeft.setVelocity(shooterVelocity / 60 * shooterCPR); // in ticks per second
+                    shooterRight.setVelocity(shooterVelocity / 60 * shooterCPR);
                     break;
                 default:
                     intake.setPower(0);
@@ -407,19 +500,23 @@ public class FTC_Decode_Test extends OpMode {
             }
 
         } else { // feeder doing something
-            intake.setPower(0);
+            intake.setPower(intakePowerFeeding);
             transfer.setPower(0);
-            shooterLeft.setPower(shooterPower);
-            shooterRight.setPower(shooterPower);
+            shooterLeft.setVelocity(shooterVelocity / 60 * shooterCPR); // in ticks per second
+            shooterRight.setVelocity(shooterVelocity / 60 * shooterCPR);
         }
 
+        double shooterLeftVelocity = shooterLeft.getVelocity() / shooterCPR * 60;
+        double shooterRightVelocity = shooterRight.getVelocity() / shooterCPR * 60;
 
         // Telemetrie
         telemetry.addData("Robot State", robotState);
         telemetry.addData("Feeder State", feederState);
         telemetry.addData("Manual Override", manualOverride);
         telemetry.addData("hood Servo Position", hoodPosition);
-        telemetry.addData("power shooter", shooterPower);
+        telemetry.addData("shooter target velocity", shooterVelocity);
+        telemetry.addData("shooter velocity left", shooterLeftVelocity);
+        telemetry.addData("shooter velocity right", shooterRightVelocity);
         telemetry.addData("elapsed time", runtime.seconds());
         telemetry.update();
     }
