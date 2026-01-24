@@ -189,11 +189,11 @@ public class FTC_Decode_Test extends OpMode {
         odo.setPosition(startPos);
 
         // Motor-Richtungen (typisch für Mecanum)
-        frontLeft.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
 
         transfer.setDirection(DcMotor.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.FORWARD);
@@ -285,8 +285,8 @@ public class FTC_Decode_Test extends OpMode {
         oldTime = newTime;
 
         // Joystick Werte
-        double y = gamepad1.left_stick_y;   // vor/zurück
-        double x = -gamepad1.left_stick_x;    // strafe
+        double y = -gamepad1.left_stick_y;   // vor/zurück
+        double x = gamepad1.left_stick_x;    // strafe
         double rx = -gamepad1.right_stick_x;  // drehen
 
 
@@ -359,10 +359,10 @@ public class FTC_Decode_Test extends OpMode {
 
 
         // Mecanum Berechnung
-        double fl = y + x + rx;
-        double bl = y - x + rx;
-        double fr = y - x - rx;
-        double br = y + x - rx;
+        double fl = y + x - rx;
+        double bl = y - x - rx;
+        double fr = y - x + rx;
+        double br = y + x + rx;
 
         // Normalisieren
         double max = Math.max(Math.abs(fl),
