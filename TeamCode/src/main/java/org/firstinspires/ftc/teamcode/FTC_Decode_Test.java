@@ -26,9 +26,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+
+import java.util.Locale;
 
 @TeleOp(name = "FTC Decode Test", group = "TeleOp")
 public class FTC_Decode_Test extends OpMode {
+
+    GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
 
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
@@ -135,6 +140,11 @@ public class FTC_Decode_Test extends OpMode {
     double targetX = 1.83;
     double targetY = 1.83;
 
+    Pose2D startPos = new Pose2D(DistanceUnit.METER, 0, 0, AngleUnit.DEGREES, 1.5*Math.PI);
+
+    double llVelThreshold = 0.05; // Threshold for limelight Position update in m/s
+    double llHeadingVelThreshold = 5.0; // Threshold for limelight Position update in deg/s
+
     boolean manualOverride = false;
 
 
@@ -160,6 +170,14 @@ public class FTC_Decode_Test extends OpMode {
         shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
 
+        odo = hardwareMap.get(GoBildaPinpointDriver.class,"pinpoint");
+
+        odo.setOffsets(-48.0, -115.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.resetPosAndIMU();
+
+        odo.setPosition(startPos);
 
         // Motor-Richtungen (typisch für Mecanum)
         frontLeft.setDirection(DcMotor.Direction.FORWARD);
@@ -257,43 +275,67 @@ public class FTC_Decode_Test extends OpMode {
         double x = -gamepad1.left_stick_x;    // strafe
         double rx = -gamepad1.right_stick_x;  // drehen
 
-        LLResult result = limelight.getLatestResult();
-        if(result != null) {
-            if(result.isValid()) {
-                Pose3D botpose = result.getBotpose();
-                double robotX = botpose.getPosition().x;
-                double robotY = botpose.getPosition().y;
-                double robotYaw = botpose.getOrientation().getYaw();
 
-                double dX = targetX - robotX;
-                double dY = targetY - robotY;
+        odo.update();
 
-                double distance = Math.sqrt(dX*dX + dY*dY);
+        Pose2D botpose = odo.getPosition();
+        double robotVelX = odo.getVelX(DistanceUnit.METER);
+        double robotVelY = odo.getVelY(DistanceUnit.METER);
+        double robotAbsVel = Math.sqrt(robotVelX*robotVelX+robotVelY*robotVelY);
+        double robotHeadingVel = odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
 
-                double targetHeading = Math.toDegrees(Math.atan2(dY,dX));
+        limelight.updateRobotOrientation(botpose.getHeading(AngleUnit.DEGREES));
 
-                double headingError = targetHeading - robotYaw;
-                if(headingError >= 360.0) {
-                    headingError -= 360;
-                }
+        LLResult llresult = null;
 
+        if(robotAbsVel < llVelThreshold && robotHeadingVel < llHeadingVelThreshold) {
+            llresult = limelight.getLatestResult();
+        }
 
-                telemetry.addData("Robot x",robotX);
-                telemetry.addData("Robot y",robotY);
-                telemetry.addData("Robot yaw",robotYaw);
-                telemetry.addData("Distance",distance);
-                telemetry.addData("Target Heading",targetHeading);
-                telemetry.addData("Heading Error",headingError);
-
-                if (robotState == RobotState.SHOOTING){ // slow down rotation
-                    rx = headingError * 0.025;
-                }
-
-                if(!manualOverride) {
-                    shooterVelocity = shooterVelocityLUT.get(distance);
-                    hoodPosition = hoodPositionLUT.get(distance);
-                }
+        boolean usingLimelight = false;
+        if(llresult != null) {
+            if(llresult.isValid()) {
+                usingLimelight = true;
+                Pose3D botpose3D = llresult.getBotpose_MT2();
+                botpose = new Pose2D(DistanceUnit.MM, botpose3D.getPosition().x, botpose3D.getPosition().y,
+                        AngleUnit.DEGREES, botpose3D.getOrientation().getYaw());
+                odo.setPosition(botpose);
             }
+        }
+        telemetry.addData("Using Limelight Localization", usingLimelight);
+
+        /* Auto Aiming stuff */
+        double robotX = botpose.getX(DistanceUnit.METER);
+        double robotY = botpose.getY(DistanceUnit.METER);
+        double robotYaw = botpose.getHeading(AngleUnit.DEGREES);
+
+        double dX = targetX - robotX;
+        double dY = targetY - robotY;
+
+        double distance = Math.sqrt(dX*dX + dY*dY);
+
+        double targetHeading = Math.toDegrees(Math.atan2(dY,dX));
+
+        double headingError = targetHeading - robotYaw;
+        if(headingError >= 360.0) {
+            headingError -= 360;
+        }
+
+
+        //  telemetry.addData("Robot x",robotX);
+        //   telemetry.addData("Robot y",robotY);
+        // telemetry.addData("Robot yaw",robotYaw);
+        telemetry.addData("Distance",distance);
+        telemetry.addData("Target Heading",targetHeading);
+        telemetry.addData("Heading Error",headingError);
+
+        if (robotState == RobotState.SHOOTING){ // slow down rotation
+            rx = headingError * 0.025;
+        }
+
+        if(!manualOverride) {
+            shooterVelocity = shooterVelocityLUT.get(distance);
+            hoodPosition = hoodPositionLUT.get(distance);
         }
 
 
@@ -510,6 +552,11 @@ public class FTC_Decode_Test extends OpMode {
         double shooterRightVelocity = shooterRight.getVelocity() / shooterCPR * 60;
 
         // Telemetrie
+        String position = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", botpose.getX(DistanceUnit.MM), botpose.getY(DistanceUnit.MM), botpose.getHeading(AngleUnit.DEGREES));
+        String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.MM), odo.getVelY(DistanceUnit.MM), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
+
+        telemetry.addData("Position", position);
+        telemetry.addData("Velocity", velocity);
         telemetry.addData("Robot State", robotState);
         telemetry.addData("Feeder State", feederState);
         telemetry.addData("Manual Override", manualOverride);
