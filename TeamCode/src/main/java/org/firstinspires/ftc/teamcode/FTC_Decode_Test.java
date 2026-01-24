@@ -119,6 +119,8 @@ public class FTC_Decode_Test extends OpMode {
     double shooterMin = 2000;
     double shooterMax = 4000;
 
+    double velocityTreshold = 100;
+
     // shooter PID
     double shooter_kP = 20;
     double shooter_kF = 0.7;
@@ -140,10 +142,17 @@ public class FTC_Decode_Test extends OpMode {
     double targetX = 1.83;
     double targetY = 1.83;
 
-    Pose2D startPos = new Pose2D(DistanceUnit.METER, 0, 0, AngleUnit.DEGREES, 1.5*Math.PI);
+    Pose2D startPos = new Pose2D(DistanceUnit.METER, -2, 0, AngleUnit.RADIANS, 0.5*Math.PI);
 
     double llVelThreshold = 0.05; // Threshold for limelight Position update in m/s
     double llHeadingVelThreshold = 5.0; // Threshold for limelight Position update in deg/s
+
+    double autoAim_kP = 0.025; // unit: /deg
+    double autoAim_kD = 0.0005; // unit: s/deg
+
+    double previousHeadingError = 0;
+    double headingErrorThreshold = 3; // in deg
+    double oldTime = 0;
 
     boolean manualOverride = false;
 
@@ -175,7 +184,7 @@ public class FTC_Decode_Test extends OpMode {
         odo.setOffsets(-48.0, -115.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        odo.resetPosAndIMU();
+        //odo.resetPosAndIMU();
 
         odo.setPosition(startPos);
 
@@ -270,6 +279,11 @@ public class FTC_Decode_Test extends OpMode {
 
     @Override
     public void loop() {
+        double newTime = getRuntime();
+        double loopTime = newTime-oldTime;
+        double frequency = 1/loopTime;
+        oldTime = newTime;
+
         // Joystick Werte
         double y = gamepad1.left_stick_y;   // vor/zurück
         double x = -gamepad1.left_stick_x;    // strafe
@@ -284,11 +298,11 @@ public class FTC_Decode_Test extends OpMode {
         double robotAbsVel = Math.sqrt(robotVelX*robotVelX+robotVelY*robotVelY);
         double robotHeadingVel = odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
 
-        limelight.updateRobotOrientation(botpose.getHeading(AngleUnit.DEGREES));
 
         LLResult llresult = null;
 
         if(robotAbsVel < llVelThreshold && robotHeadingVel < llHeadingVelThreshold) {
+            limelight.updateRobotOrientation(botpose.getHeading(AngleUnit.DEGREES));
             llresult = limelight.getLatestResult();
         }
 
@@ -296,8 +310,8 @@ public class FTC_Decode_Test extends OpMode {
         if(llresult != null) {
             if(llresult.isValid()) {
                 usingLimelight = true;
-                Pose3D botpose3D = llresult.getBotpose_MT2();
-                botpose = new Pose2D(DistanceUnit.MM, botpose3D.getPosition().x, botpose3D.getPosition().y,
+                Pose3D botpose3D = llresult.getBotpose();
+                botpose = new Pose2D(DistanceUnit.METER, botpose3D.getPosition().x, botpose3D.getPosition().y,
                         AngleUnit.DEGREES, botpose3D.getOrientation().getYaw());
                 odo.setPosition(botpose);
             }
@@ -316,8 +330,9 @@ public class FTC_Decode_Test extends OpMode {
 
         double targetHeading = Math.toDegrees(Math.atan2(dY,dX));
 
+
         double headingError = targetHeading - robotYaw;
-        if(headingError >= 360.0) {
+        if(headingError >= 180.0) {
             headingError -= 360;
         }
 
@@ -330,8 +345,10 @@ public class FTC_Decode_Test extends OpMode {
         telemetry.addData("Heading Error",headingError);
 
         if (robotState == RobotState.SHOOTING){ // slow down rotation
-            rx = headingError * 0.025;
+            rx = headingError * autoAim_kP + (headingError-previousHeadingError)/loopTime*autoAim_kD;
         }
+
+        previousHeadingError = headingError;
 
         if(!manualOverride) {
             shooterVelocity = shooterVelocityLUT.get(distance);
@@ -409,13 +426,16 @@ public class FTC_Decode_Test extends OpMode {
         //} else {
         //    feeder_stop.setPosition(0.6);
         //}
-
+        double shooterLeftVelocity = shooterLeft.getVelocity() / shooterCPR * 60;
+        double shooterRightVelocity = shooterRight.getVelocity() / shooterCPR * 60;
 
         // ---- Feeder----
         switch (feederState) {
             case IDLE:
                 if(robotState == RobotState.SHOOTING && gamepad1.b
-                        && runtime.seconds() >= feederIdleTime + feederStartTime) { //TODO: add speed requirement for shooter wheels
+                        && runtime.seconds() >= feederIdleTime + feederStartTime
+                        && Math.abs(shooterLeftVelocity - shooterVelocity) < velocityTreshold
+                        && Math.abs(headingError) < headingErrorThreshold) {
                     feeder_servo.setPosition(feederExtended);
                     feederState = FeederState.EXTENDING;
                     feederStartTime = runtime.seconds();
@@ -548,12 +568,10 @@ public class FTC_Decode_Test extends OpMode {
             shooterRight.setVelocity(shooterVelocity / 60 * shooterCPR);
         }
 
-        double shooterLeftVelocity = shooterLeft.getVelocity() / shooterCPR * 60;
-        double shooterRightVelocity = shooterRight.getVelocity() / shooterCPR * 60;
 
         // Telemetrie
-        String position = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", botpose.getX(DistanceUnit.MM), botpose.getY(DistanceUnit.MM), botpose.getHeading(AngleUnit.DEGREES));
-        String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.MM), odo.getVelY(DistanceUnit.MM), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
+        String position = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", botpose.getX(DistanceUnit.METER), botpose.getY(DistanceUnit.METER), botpose.getHeading(AngleUnit.DEGREES));
+        String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.METER), odo.getVelY(DistanceUnit.METER), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
 
         telemetry.addData("Position", position);
         telemetry.addData("Velocity", velocity);
