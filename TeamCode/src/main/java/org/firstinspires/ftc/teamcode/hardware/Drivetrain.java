@@ -42,7 +42,7 @@ public class Drivetrain {
     }
 
     public double getDistance() {
-        return targetPose.distanceFrom(follower.getPose());
+        return inchToMeter(targetPose.distanceFrom(follower.getPose()));
     }
 
     public double getVelocityX() {

@@ -46,13 +46,14 @@ public class Limelight {
 
     public void update(double heading) {
         limelight.updateRobotOrientation(heading);
+        llresult = limelight.getLatestResult();
     }
 
-    public Pose2D getPose(double velocityX, double velocityY, double angularVelocity) throws Exception {
+    public Pose2D getPose(double velocityX, double velocityY, double angularVelocity) {
         double linearVelocity = Math.sqrt(velocityX*velocityX + velocityY*velocityY);
 
-        if(linearVelocity < LINEAR_VELOCITY_THRESHOLD && angularVelocity < ANGULAR_VELOCITY_THRESHOLD) {
-            throw new Exception("Robot too quick for limelight pose update.");
+        if(linearVelocity > LINEAR_VELOCITY_THRESHOLD || Math.abs(angularVelocity) > ANGULAR_VELOCITY_THRESHOLD) {
+            return null;
         }
 
         llresult = limelight.getLatestResult();
@@ -64,7 +65,27 @@ public class Limelight {
             }
         }
 
-        throw new Exception("invalid limelight result");
+        return null;
+
+    }
+
+    public Pose2D getPoseMT2(double velocityX, double velocityY, double angularVelocity) {
+        double linearVelocity = Math.sqrt(velocityX*velocityX + velocityY*velocityY);
+
+        if(linearVelocity > LINEAR_VELOCITY_THRESHOLD || Math.abs(angularVelocity) > ANGULAR_VELOCITY_THRESHOLD) {
+            return null;
+        }
+
+        llresult = limelight.getLatestResult();
+        if(llresult != null) {
+            if(llresult.isValid()) {
+                Pose3D botpose3D = llresult.getBotpose_MT2();
+                return new Pose2D(DistanceUnit.METER, botpose3D.getPosition().x, botpose3D.getPosition().y,
+                        AngleUnit.DEGREES, botpose3D.getOrientation().getYaw());
+            }
+        }
+
+        return null;
 
     }
 }

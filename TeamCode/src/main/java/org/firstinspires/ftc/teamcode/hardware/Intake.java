@@ -31,9 +31,11 @@ public class Intake {
         setState(State.IDLE);
     }
     public void setState(State state) {
-        this.state = state;
+        if(state != this.state) {
+            this.state = state;
 
-        changeState();
+            changeState();
+        }
     }
 
     public State getState() {

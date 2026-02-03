@@ -22,19 +22,20 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     public DrivetrainTeleOp(HardwareMap hardwareMap, Pose2D startPose) {
         super(hardwareMap, startPose);
-        follower.startTeleOpDrive(true);
+        follower.startTeleOpDrive(false);
 
         aimingMode = false;
     }
 
     public void update(double leftStickX, double leftStickY, double rightStickX, double loopTime) {
         double forward = -leftStickY*FORWARD_SCALING;
-        double strafe = leftStickX*STRAFE_SCALING;
-        double turn = rightStickX*TURN_SCALING;
+        double strafe = -leftStickX*STRAFE_SCALING;
+        double turn = -rightStickX*TURN_SCALING;
 
         if(aimingMode) {
             double headingError = getHeadingError();
             turn = headingError * AUTO_AIM_KP + (headingError-previousHeadingError)/loopTime*AUTO_AIM_KD;
+            previousHeadingError = headingError;
         }
 
         follower.setTeleOpDrive(forward,strafe,turn);
@@ -42,7 +43,9 @@ public class DrivetrainTeleOp extends Drivetrain{
     }
 
     public void setAimingMode(boolean aimingMode) {
-        this.aimingMode = aimingMode;
+        if(this.aimingMode != aimingMode) {
+            this.aimingMode = aimingMode;
+        }
     }
 
     public boolean getAimingMode() {

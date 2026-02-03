@@ -20,17 +20,17 @@ public class Shooter {
     private static final long FEEDER_IDLE_TIME = 150; // time the feeder has to wait for ball to come into position  0.7
 
     // Feeder Positions
-    private static final double FEEDER_RETRACTED = 0.95; // 0.95
+    private static final double FEEDER_RETRACTED = 0.825; // 0.95
     private static final double FEEDER_EXTENDED = 0.6;
 
     // Hood Positions (for manual mode)
-    private static final double HOOD_MIN_POSITION = 0.4;
-    private static final double HOOD_MAX_POSITION = 1.0;
+    private static final double HOOD_MIN_POSITION = 0.1;
+    private static final double HOOD_MAX_POSITION = 0.975;
     private static final double HOOD_STEP_SIZE = 0.025;
 
     // Shooter Velocity Params (in RPM)
     private static final double SHOOTER_MIN_VELOCITY = 2500; // for manual override
-    private static final double SHOOTER_MAX_VELOCITY = 4000; // for manual override
+    private static final double SHOOTER_MAX_VELOCITY = 4500; // for manual override
     private static final double SHOOTER_STEP_SIZE = 100; // for manual override
     private static final double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough too shoot
     private static final double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
@@ -61,7 +61,7 @@ public class Shooter {
     }
 
     // Feeder State
-    private enum FeederState {
+    enum FeederState {
         READY,
         EXTENDING,
         RETRACTING
@@ -91,7 +91,7 @@ public class Shooter {
     private double hoodPositionManual = (HOOD_MAX_POSITION+HOOD_MIN_POSITION)/2; // manual set hood position
     private double shooterTargetVelocityManual = (SHOOTER_MAX_VELOCITY + SHOOTER_MIN_VELOCITY)/2; // manual override velocity
 
-    private double hoodPosition; // hood position as calculated by LUT
+    private double hoodPosition = (HOOD_MIN_POSITION + HOOD_MAX_POSITION)/2; // hood position as calculated by LUT
     private double shooterTargetVelocity; // shooter velocity as calculated by LUT
     private double shooterVelocity; // actual velocity of the shooter
 
@@ -123,8 +123,8 @@ public class Shooter {
         feeder.setPosition(FEEDER_RETRACTED);
         feederState = FeederState.READY;
 
-        setState(State.IDLE);
         setShooterMotorIdlingMode(initialshooterMotorIdlingState);
+        setState(State.IDLE);
 
         resetShots();
     }
@@ -202,14 +202,18 @@ public class Shooter {
     }
 
     public void setState(State state) {
-        this.state = state;
+        if(state != this.state) {
+            this.state = state;
 
-        changeState();
+            changeState();
+        }
     }
 
     public State getState() {
         return state;
     }
+
+    public FeederState getFeederState() {return feederState;}
 
     public void setShooterMotorIdlingMode(ShooterMotorIdlingState shooterMotorIdlingState) {
         this.shooterMotorIdlingState = shooterMotorIdlingState;
@@ -255,6 +259,14 @@ public class Shooter {
         }
     }
 
+    public double getHoodPosition() {return  hoodPosition;}
+
+    public double getShooterTargetVelocity() {return shooterTargetVelocity;}
+
+    public double getHoodPositionManual() {return hoodPositionManual;}
+
+    public double getShooterTargetVelocityManual() {return shooterTargetVelocityManual;}
+
     private double toRPM(double velocityRaw) {
         return velocityRaw / MOTOR_CPR * 60.0 / GEAR_RATIO;
     }
@@ -270,10 +282,6 @@ public class Shooter {
     private void setShooterTargetVelocity(double shooterTargetVelocity) {
         shooterLeft.setVelocity(toTPS(shooterTargetVelocity));
         shooterRight.setVelocity(toTPS(shooterTargetVelocity));
-    }
-
-    public double getShooterTargetVelocity() {
-        return shooterTargetVelocity;
     }
 
     public void resetShots() {

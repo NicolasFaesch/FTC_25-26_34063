@@ -3,10 +3,11 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Robot {
-    protected Limelight limelight;
-    protected Intake intake;
-    protected Shooter shooter;
-    protected Transfer transfer;
+    public Limelight limelight;
+    public Intake intake;
+    public Shooter shooter;
+    public Transfer transfer;
+    public ColorLED colorLED;
 
     public enum Alliance {
         RED,
@@ -31,6 +32,7 @@ public class Robot {
         intake = new Intake(hardwareMap);
         transfer = new Transfer(hardwareMap);
         shooter = new Shooter(hardwareMap, Shooter.ShooterMotorIdlingState.OFF);
+        colorLED = new ColorLED(hardwareMap);
 
         state = State.IDLE;
 
@@ -39,6 +41,14 @@ public class Robot {
     protected void update() {
         //intake.update();
         //transfer.update();
+        if(shooter.getState() == Shooter.State.AIMING || shooter.getState() == Shooter.State.SHOOTING) {
+            if(shooter.getFeederState() == Shooter.FeederState.EXTENDING) {
+                transfer.setState(Transfer.State.IDLE);
+            } else {
+                transfer.setState(Transfer.State.FEEDING);
+            }
+        }
+
     }
 
     public void setState(State state) {
@@ -49,26 +59,32 @@ public class Robot {
                     intake.setState(Intake.State.IDLE);
                     transfer.setState(Transfer.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
+                    break;
                 case INTAKING:
                     intake.setState(Intake.State.INTAKING);
                     transfer.setState(Transfer.State.INTAKING);
                     shooter.setState(Shooter.State.IDLE);
+                    break;
                 case OUTTAKING:
                     intake.setState(Intake.State.OUTTAKING);
                     transfer.setState(Transfer.State.OUTTAKING);
                     shooter.setState(Shooter.State.IDLE);
+                    break;
                 case SHOOTING:
                     intake.setState(Intake.State.STORING);
                     transfer.setState(Transfer.State.STORING);
                     shooter.setState(Shooter.State.SHOOTING);
+                    break;
                 case AIMING:
                     intake.setState(Intake.State.STORING);
-                    transfer.setState(Transfer.State.STORING);
+                    transfer.setState(Transfer.State.FEEDING);
                     shooter.setState(Shooter.State.AIMING);
+                    break;
                 case STORING:
                     intake.setState(Intake.State.STORING);
-                    transfer.setState(Transfer.State.STORING);
+                    transfer.setState(Transfer.State.FEEDING);
                     shooter.setState(Shooter.State.IDLE);
+                    break;
             }
         }
 

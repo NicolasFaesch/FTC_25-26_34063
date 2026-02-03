@@ -9,7 +9,7 @@ public class Transfer {
     private static final double INTAKING_POWER = 1.0;
     private static final double OUTTAKING_POWER = -0.5;
     private static final double STORING_POWER = 0.4;
-    private static final double FEEDING_POWER = 0.4;
+    private static final double FEEDING_POWER = 0.7;
 
     public enum State {
         IDLE,
@@ -28,14 +28,16 @@ public class Transfer {
 
         transferMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         transferMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        transferMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
 
         setState(State.IDLE);
     }
     public void setState(State state) {
-        this.state = state;
+        if(state != this.state) {
+            this.state = state;
 
-        changeState();
+            changeState();
+        }
     }
 
     public State getState() {
