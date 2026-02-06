@@ -74,7 +74,7 @@ public class TeleOpRed extends OpMode {
         telemetry.addLine("");
 
         // Robot pose telemetry
-        if(!robotTeleOp.usingLimelight) {
+        if(!robotTeleOp.isUsingLimelight()) {
             telemetry.addData("Pose (Odometry)", position);
         } else {
             telemetry.addData("Pose (Limelight)", position);

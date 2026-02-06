@@ -21,7 +21,6 @@ public class RobotTeleOp extends Robot{
 
     private Controller controller1, controller2;
 
-    public boolean usingLimelight = false;
 
 
     public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance, Pose2D startPose, Gamepad gamepad1, Gamepad gamepad2) {
@@ -34,25 +33,22 @@ public class RobotTeleOp extends Robot{
     }
 
     public void update(double loopTime) throws Exception {
-        super.update();
+        drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
+                controller1.getRightJoystickXValue(), loopTime);
+        super.update(drivetrainTeleOp.getPose());
+
         controller1.update();
         controller2.update();
 
-        drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-                controller1.getRightJoystickXValue(), loopTime);
-        limelight.update(drivetrainTeleOp.getPose().getHeading(AngleUnit.DEGREES));
 
         Pose2D limelightPose;
         if(controller2.getLeftJoystickButton() == Controller.ButtonState.PRESSED) { // use MT1 for calib
-            limelightPose = limelight.getPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity());
+            limelightPose = getLimelightPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity(), false);
         } else { // otherwise MT2
-            limelightPose = limelight.getPoseMT2(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity());
+            limelightPose = getLimelightPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity(), true);
         }
-        if (limelightPose != null) {
+        if (isUsingLimelight()) {
             drivetrainTeleOp.overridePose(limelightPose);
-            usingLimelight = true;
-        } else {
-            usingLimelight = false;
         }
 
 
