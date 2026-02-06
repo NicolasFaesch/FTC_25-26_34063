@@ -10,11 +10,14 @@ public class Intake {
     private static final double OUTTAKING_POWER = -0.5;
     private static final double STORING_POWER = 0.4;
 
+    private static final double FEEDING_POWER = 0.8;
+
     public enum State {
         IDLE,
         INTAKING,
         OUTTAKING,
-        STORING
+        STORING,
+        FEEDING
     }
 
     private State state;
@@ -55,6 +58,9 @@ public class Intake {
                 break;
             case STORING:
                 intakeMotor.setPower(STORING_POWER);
+                break;
+            case FEEDING:
+                intakeMotor.setPower(FEEDING_POWER);
                 break;
         }
     }

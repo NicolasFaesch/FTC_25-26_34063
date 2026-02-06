@@ -50,10 +50,12 @@ public class Robot {
 
         // Set transfer to feeding mode
         if(shooter.getState() == Shooter.State.AIMING || shooter.getState() == Shooter.State.SHOOTING) {
-            if(shooter.getFeederState() != Shooter.FeederState.READY) {
-                transfer.setState(Transfer.State.IDLE);
-            } else {
+            if(shooter.getFeederState() == Shooter.FeederState.READY || shooter.getFeederState() == Shooter.FeederState.RETRACTED) {
                 transfer.setState(Transfer.State.FEEDING);
+                intake.setState(Intake.State.FEEDING);
+            } else {
+                transfer.setState(Transfer.State.IDLE);
+                intake.setState(Intake.State.STORING);
             }
         }
 

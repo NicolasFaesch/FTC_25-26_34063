@@ -16,8 +16,9 @@ public class Shooter {
 
 
     // Feeder Timings (in milliseconds)
-    private static final long FEEDER_TRAVEL_TIME = 120; // time for the feeder servo to move up or down
-    private static final long FEEDER_IDLE_TIME = 150; // time the feeder has to wait for ball to come into position  0.7
+    private static final long FEEDER_TRAVEL_TIME_UP = 120; // time for the feeder servo to move up or down
+    private static final long FEEDER_TRAVEL_TIME_DOWN = 100; // time for the feeder servo to move up or down
+    private static final long FEEDER_IDLE_TIME = 100; // time the feeder has to wait for ball to come into position
 
     // Feeder Positions
     private static final double FEEDER_RETRACTED = 0.825; // 0.95
@@ -64,7 +65,8 @@ public class Shooter {
     enum FeederState {
         READY,
         EXTENDING,
-        RETRACTING
+        RETRACTING,
+        RETRACTED
     }
 
     public enum ShooterMotorIdlingState {
@@ -77,8 +79,9 @@ public class Shooter {
     private FeederState feederState;
     private ShooterMotorIdlingState shooterMotorIdlingState;
 
-    private Timing.Timer feederExtendingTimer = new Timing.Timer(FEEDER_TRAVEL_TIME, TimeUnit.MILLISECONDS);
-    private Timing.Timer feederRetractingTimer = new Timing.Timer(FEEDER_TRAVEL_TIME + FEEDER_IDLE_TIME, TimeUnit.MILLISECONDS); // includes waiting for feeding of new ball
+    private Timing.Timer feederTravelTimerUp = new Timing.Timer(FEEDER_TRAVEL_TIME_UP, TimeUnit.MILLISECONDS);
+    private Timing.Timer feederTravelTimerDown = new Timing.Timer(FEEDER_TRAVEL_TIME_DOWN, TimeUnit.MILLISECONDS);
+    private Timing.Timer feederRetractedTimer = new Timing.Timer(FEEDER_IDLE_TIME, TimeUnit.MILLISECONDS); // includes waiting for feeding of new ball
 
     private boolean readyToShoot;
 
@@ -181,20 +184,26 @@ public class Shooter {
                 if(readyToShoot && state == State.SHOOTING) {
                     feeder.setPosition(FEEDER_EXTENDED);
                     feederState = FeederState.EXTENDING;
-                    feederExtendingTimer.start();
+                    feederTravelTimerUp.start();
                 }
                 break;
             case EXTENDING:
-                if (feederExtendingTimer.done()) {
+                if (feederTravelTimerUp.done()) {
                     feeder.setPosition(FEEDER_RETRACTED);
                     feederState = FeederState.RETRACTING;
-                    feederRetractingTimer.start();
+                    feederTravelTimerDown.start();
                 }
                 break;
             case RETRACTING:
-                if (feederRetractingTimer.done()) {
-                    feederState = FeederState.READY;
+                if (feederTravelTimerDown.done()) {
+                    feederState = FeederState.RETRACTED;
                     ballsShot += 1;
+                    feederRetractedTimer.start();
+                }
+                break;
+        case RETRACTED:
+                if (feederRetractedTimer.done()) {
+                    feederState = FeederState.READY;
                 }
                 break;
         }

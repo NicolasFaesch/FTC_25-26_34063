@@ -18,7 +18,7 @@ public class RobotAuto extends Robot{
     public void update() {
         drivetrainAuto.update();
         super.update(drivetrainAuto.getPose());
-        Pose2D limelightPose = getLimelightPose(drivetrainAuto.getVelocityX(), drivetrainAuto.getVelocityY(), drivetrainAuto.getAngularVelocity(), true);
+        Pose2D limelightPose = getLimelightPose(drivetrainAuto.getVelocityX(), drivetrainAuto.getVelocityY(), drivetrainAuto.getAngularVelocity(), false);
         if (isUsingLimelight()) {
             drivetrainAuto.overridePose(limelightPose);
         }

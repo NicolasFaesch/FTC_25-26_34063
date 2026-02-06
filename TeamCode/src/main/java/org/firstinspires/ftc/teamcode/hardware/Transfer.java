@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Transfer {
 
-    private static final double INTAKING_POWER = 1.0;
+    private static final double INTAKING_POWER = 0.75;
     private static final double OUTTAKING_POWER = -0.5;
     private static final double STORING_POWER = 0.4;
     private static final double FEEDING_POWER = 0.7;

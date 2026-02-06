@@ -33,11 +33,11 @@ public class AutoRedClose extends OpMode {
     static final int START_WAITING_TIMER = 0;
     double previousTime = 0;
 
-    final Pose startPose = new Pose(-160/2.5, 27/2.5, Math.toRadians(90));
-    final Pose shoot0Pose = new Pose(-160/2.5, 27/2.5, Math.toRadians(90));
-    final Pose pickUp1PoseBefore = new Pose(-30/2.5,10/2.5, Math.toRadians(90));
-    final Pose pickUp1PoseAfter = new Pose(-20/2.5, -39/2.5, Math.toRadians(0));
-    final Pose shoot1Pose = new Pose(45/2.5, -39/2.5, Math.toRadians(0));
+    final Pose startPose = new Pose(-168/2.54, 30/2.54, Math.toRadians(90));
+    final Pose shoot0Pose = new Pose(-94/2.54, 62/2.54, Math.toRadians(120));
+    final Pose pickUp1PoseBefore = new Pose(-35/2.54,3/2.54, Math.toRadians(90));
+    final Pose pickUp1PoseAfter = new Pose(-34/2.54, 100/2.54, Math.toRadians(90));
+    final Pose shoot1Pose = new Pose(-112/2.54, 73/2.54, Math.toRadians(120));
 
     enum AutoState {
         WAITING,
@@ -63,7 +63,7 @@ public class AutoRedClose extends OpMode {
 
         pickup1 = new Path(new BezierLine(pickUp1PoseBefore, pickUp1PoseAfter));
         pickup1.setLinearHeadingInterpolation(pickUp1PoseBefore.getHeading(), pickUp1PoseAfter.getHeading());
-        pickup1.setVelocityConstraint(5);
+        pickup1.setVelocityConstraint(2);
 
         pickup1ToShoot1 = new Path(new BezierLine(pickUp1PoseAfter, shoot1Pose));
         pickup1ToShoot1.setLinearHeadingInterpolation(pickUp1PoseAfter.getHeading(),shoot1Pose.getHeading());
@@ -133,6 +133,7 @@ public class AutoRedClose extends OpMode {
     @Override
     public void init() {
         robotAuto = new RobotAuto(hardwareMap, Robot.Alliance.RED, new Pose2D(DistanceUnit.INCH, startPose.getX(), startPose.getY(), AngleUnit.RADIANS, startPose.getHeading()));
+        autoTimer = new Timer();
     }
 
     @Override
