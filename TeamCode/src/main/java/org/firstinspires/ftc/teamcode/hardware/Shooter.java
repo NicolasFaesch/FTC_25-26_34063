@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
@@ -31,16 +32,16 @@ public class Shooter {
 
     // Shooter Velocity Params (in RPM)
     private static final double SHOOTER_MIN_VELOCITY = 2500; // for manual override
-    private static final double SHOOTER_MAX_VELOCITY = 4500; // for manual override
+    private static final double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     private static final double SHOOTER_STEP_SIZE = 100; // for manual override
     private static final double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough too shoot
     private static final double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
-    private static final double SHOOTER_KP = 0.0;
+    private static final double SHOOTER_KP = 80.0;
     private static final double SHOOTER_KI = 0.0;
-    private static final double SHOOTER_KD = 0.0;
-    private static final double SHOOTER_KV = 0.0;
+    private static final double SHOOTER_KD = 30.0;
+    private static final double SHOOTER_KV = 12.0;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution
@@ -114,7 +115,7 @@ public class Shooter {
 
 
         shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
+        shooterRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -125,6 +126,8 @@ public class Shooter {
         hood.setPosition(hoodPosition);
         feeder.setPosition(FEEDER_RETRACTED);
         feederState = FeederState.READY;
+
+        setShooterPIDFGains(SHOOTER_KP, SHOOTER_KI, SHOOTER_KD, SHOOTER_KV);
 
         setShooterMotorIdlingMode(initialshooterMotorIdlingState);
         setState(State.IDLE);
@@ -299,6 +302,12 @@ public class Shooter {
 
     public int getBallsShot() {
         return  ballsShot;
+    }
+
+    public void setShooterPIDFGains(double kP, double kI, double kD, double kV) {
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, kI, kD, kV);
+        shooterLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        shooterRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
     }
 
 }

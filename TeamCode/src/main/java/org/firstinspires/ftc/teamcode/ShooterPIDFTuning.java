@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -11,23 +10,35 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotTeleOp;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 import java.util.Locale;
+import java.util.Objects;
 
-@TeleOp(name = "TeleOp RED", group = "Red")
-public class TeleOpRed extends OpMode {
+import com.bylazar.telemetry.PanelsTelemetry;
+
+@TeleOp(name = "Shooter PIDF Tuning", group = "Tuning")
+@Configurable
+public class ShooterPIDFTuning extends OpMode {
+    private final TelemetryManager panelsTelemetry =
+            PanelsTelemetry.INSTANCE.getTelemetry();
+
     private RobotTeleOp robotTeleOp;
     private ElapsedTime runtime = new ElapsedTime();
     double previousTime = 0;
 
+    public static double kP = 0;
+    public static double kI = 0;
+    public static double kD = 0;
+    public static double kV = 0;
+
     @Override
     public void init() {
         robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED, PoseStorage.currentPose
-        , gamepad1, gamepad2);
+                , gamepad1, gamepad2);
+
     }
 
     @Override
@@ -42,6 +53,8 @@ public class TeleOpRed extends OpMode {
 
     @Override
     public void loop() {
+        if(gamepad1.dpadRightWasPressed())
+            robotTeleOp.shooter.setShooterPIDFGains(kP, kI, kD, kV);
         // clear cache for bulk reading
         for (LynxModule module : this.hardwareMap.getAll(LynxModule.class)) {
             module.clearBulkCache();
@@ -89,15 +102,19 @@ public class TeleOpRed extends OpMode {
             telemetry.addLine("Shooter: MANUAL OVERRIDE");
             telemetry.addData("Hood Position (manual)", robotTeleOp.shooter.getHoodPositionManual());
             telemetry.addData("Shooter Target Velocity (manual)", robotTeleOp.shooter.getShooterTargetVelocityManual());
+            panelsTelemetry.addData("Shooter Target Velocity", robotTeleOp.shooter.getShooterTargetVelocityManual());
         } else {
             telemetry.addLine("Shooter:");
             telemetry.addData("Hood Position", robotTeleOp.shooter.getHoodPosition());
             telemetry.addData("Shooter Target Velocity", robotTeleOp.shooter.getShooterTargetVelocity());
+            panelsTelemetry.addData("Shooter Target Velocity", robotTeleOp.shooter.getShooterTargetVelocity());
         }
         telemetry.addData("Shooter Velocity", robotTeleOp.shooter.getShooterVelocity());
+        panelsTelemetry.addData("Shooter Velocity", robotTeleOp.shooter.getShooterVelocity());
 
 
         telemetry.update();
+        panelsTelemetry.update();
     }
 
     @Override

@@ -33,40 +33,91 @@ public class AutoRedClose extends OpMode {
     static final int START_WAITING_TIMER = 0;
     double previousTime = 0;
 
-    final Pose startPose = new Pose(-168/2.54, 30/2.54, Math.toRadians(90));
-    final Pose shoot0Pose = new Pose(-94/2.54, 62/2.54, Math.toRadians(120));
-    final Pose pickUp1PoseBefore = new Pose(-35/2.54,3/2.54, Math.toRadians(90));
-    final Pose pickUp1PoseAfter = new Pose(-34/2.54, 100/2.54, Math.toRadians(90));
-    final Pose shoot1Pose = new Pose(-112/2.54, 73/2.54, Math.toRadians(120));
+    final Pose startPose = new Pose(-70, 11, Math.toRadians(90));
+    final Pose shoot0Pose = new Pose(-31, 25, Math.toRadians(132));
+
+    final Pose pickUp1PoseBefore = new Pose(-14,20, Math.toRadians(90));
+    final Pose pickUp1PoseAfter = new Pose(-11, 55, Math.toRadians(90));
+    final Pose shoot1Pose = new Pose(-37, 10, Math.toRadians(120));
+
+    final Pose pickUp2PoseBefore = new Pose(14, 20, Math.toRadians(90));
+    final Pose pickUp2PoseAfter  = new Pose(14, 55, Math.toRadians(90));
+    final Pose shoot2Pose        = new Pose(-31, 25, Math.toRadians(132));
+
+    final Pose pickUp3PoseBefore = new Pose(37, 20, Math.toRadians(90));
+    final Pose pickUp3PoseAfter  = new Pose(37, 50, Math.toRadians(90));
+    final Pose shoot3Pose        = new Pose(-25, 20, Math.toRadians(132));
+
 
     enum AutoState {
         WAITING,
+
         START_TO_SHOOT0,
         SHOOT0,
+
         SHOOT0_TO_PICKUP1,
         PICKUP1,
         PICKUP1_TO_SHOOT1,
         SHOOT1,
+
+        SHOOT1_TO_PICKUP2,
+        PICKUP2,
+        PICKUP2_TO_SHOOT2,
+        SHOOT2,
+
+        SHOOT2_TO_PICKUP3,
+        PICKUP3,
+        PICKUP3_TO_SHOOT3,
+        SHOOT3,
+
         DONE
     }
+
 
     AutoState autoState;
 
     Path startToShoot0, shoot0ToPickup1, pickup1, pickup1ToShoot1;
+    Path shoot1ToPickup2, pickup2, pickup2ToShoot2;
+    Path shoot2ToPickup3, pickup3, pickup3ToShoot3;
+
 
     void buildPaths(){
         startToShoot0 = new Path(new BezierLine(startPose, shoot0Pose));
         startToShoot0.setLinearHeadingInterpolation(startPose.getHeading(), shoot0Pose.getHeading());
+
 
         shoot0ToPickup1 = new Path(new BezierLine(shoot0Pose, pickUp1PoseBefore));
         shoot0ToPickup1.setLinearHeadingInterpolation(shoot0Pose.getHeading(), pickUp1PoseBefore.getHeading());
 
         pickup1 = new Path(new BezierLine(pickUp1PoseBefore, pickUp1PoseAfter));
         pickup1.setLinearHeadingInterpolation(pickUp1PoseBefore.getHeading(), pickUp1PoseAfter.getHeading());
-        pickup1.setVelocityConstraint(2);
+        pickup1.setVelocityConstraint(0.7);
 
         pickup1ToShoot1 = new Path(new BezierLine(pickUp1PoseAfter, shoot1Pose));
         pickup1ToShoot1.setLinearHeadingInterpolation(pickUp1PoseAfter.getHeading(),shoot1Pose.getHeading());
+
+
+        shoot1ToPickup2 = new Path(new BezierLine(shoot1Pose, pickUp2PoseBefore));
+        shoot1ToPickup2.setLinearHeadingInterpolation(shoot1Pose.getHeading(), pickUp2PoseBefore.getHeading());
+
+        pickup2 = new Path(new BezierLine(pickUp2PoseBefore, pickUp2PoseAfter));
+        pickup2.setLinearHeadingInterpolation(pickUp2PoseBefore.getHeading(), pickUp2PoseAfter.getHeading());
+        pickup2.setVelocityConstraint(0.7);
+
+        pickup2ToShoot2 = new Path(new BezierLine(pickUp2PoseAfter, shoot2Pose));
+        pickup2ToShoot2.setLinearHeadingInterpolation(pickUp2PoseAfter.getHeading(), shoot2Pose.getHeading());
+
+
+        shoot2ToPickup3 = new Path(new BezierLine(shoot2Pose, pickUp3PoseBefore));
+        shoot2ToPickup3.setLinearHeadingInterpolation(shoot2Pose.getHeading(), pickUp3PoseBefore.getHeading());
+
+        pickup3 = new Path(new BezierLine(pickUp3PoseBefore, pickUp3PoseAfter));
+        pickup3.setLinearHeadingInterpolation(pickUp3PoseBefore.getHeading(), pickUp3PoseAfter.getHeading());
+        pickup3.setVelocityConstraint(0.7);
+
+        pickup3ToShoot3 = new Path(new BezierLine(pickUp3PoseAfter, shoot3Pose));
+        pickup3ToShoot3.setLinearHeadingInterpolation(pickUp3PoseAfter.getHeading(), shoot3Pose.getHeading());
+
     }
 
     void autonomousPathUpdate(){
@@ -115,9 +166,74 @@ public class AutoRedClose extends OpMode {
             case SHOOT1:
                 if(robotAuto.getBallsShot() >= 3){
                     robotAuto.setState(Robot.State.IDLE);
+                    robotAuto.drivetrainAuto.followPath(shoot1ToPickup2);
+                    setAutoState(AutoState.SHOOT1_TO_PICKUP2);
+                }
+                break;
+
+            case SHOOT1_TO_PICKUP2:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.setState(Robot.State.INTAKING);
+                    robotAuto.drivetrainAuto.followPath(pickup2);
+                    setAutoState(AutoState.PICKUP2);
+                }
+                break;
+
+            case PICKUP2:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.setState(Robot.State.STORING);
+                    robotAuto.drivetrainAuto.followPathAndHold(pickup2ToShoot2);
+                    setAutoState(AutoState.PICKUP2_TO_SHOOT2);
+                }
+                break;
+
+            case PICKUP2_TO_SHOOT2:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.resetShots();
+                    robotAuto.setState(Robot.State.SHOOTING);
+                    setAutoState(AutoState.SHOOT2);
+                }
+                break;
+
+            case SHOOT2:
+                if(robotAuto.getBallsShot() >= 3){
+                    robotAuto.setState(Robot.State.IDLE);
+                    robotAuto.drivetrainAuto.followPath(shoot2ToPickup3);
+                    setAutoState(AutoState.SHOOT2_TO_PICKUP3);
+                }
+                break;
+
+            case SHOOT2_TO_PICKUP3:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.setState(Robot.State.INTAKING);
+                    robotAuto.drivetrainAuto.followPath(pickup3);
+                    setAutoState(AutoState.PICKUP3);
+                }
+                break;
+
+            case PICKUP3:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.setState(Robot.State.STORING);
+                    robotAuto.drivetrainAuto.followPathAndHold(pickup3ToShoot3);
+                    setAutoState(AutoState.PICKUP3_TO_SHOOT3);
+                }
+                break;
+
+            case PICKUP3_TO_SHOOT3:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()){
+                    robotAuto.resetShots();
+                    robotAuto.setState(Robot.State.SHOOTING);
+                    setAutoState(AutoState.SHOOT3);
+                }
+                break;
+
+            case SHOOT3:
+                if(robotAuto.getBallsShot() >= 3){
+                    robotAuto.setState(Robot.State.IDLE);
                     setAutoState(AutoState.DONE);
                 }
                 break;
+
             case DONE:
                 break;
         }
