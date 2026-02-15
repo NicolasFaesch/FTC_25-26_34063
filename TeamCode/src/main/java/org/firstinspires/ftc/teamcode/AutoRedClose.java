@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import static java.lang.Thread.sleep;
+
 import com.pedropathing.geometry.BezierCurve;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -23,9 +25,11 @@ import com.pedropathing.paths.PathChain;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 import java.util.Locale;
+import java.util.concurrent.Delayed;
 
 @Autonomous(name = "Auto RED Close", group = "Red")
 public class AutoRedClose extends OpMode {
+
     RobotAuto robotAuto;
     ElapsedTime runtime = new ElapsedTime();
     private Timer autoTimer, startTimer;
@@ -36,17 +40,30 @@ public class AutoRedClose extends OpMode {
     final Pose startPose = new Pose(-70, 11, Math.toRadians(90));
     final Pose shoot0Pose = new Pose(-31, 25, Math.toRadians(132));
 
+    // lane 1
     final Pose pickUp1PoseBefore = new Pose(-14,20, Math.toRadians(90));
-    final Pose pickUp1PoseAfter = new Pose(-11, 55, Math.toRadians(90));
-    final Pose shoot1Pose = new Pose(-37, 10, Math.toRadians(120));
+    final Pose pickUp1PoseAfter = new Pose(-11, 49, Math.toRadians(90));
+    final Pose shoot1Pose = new Pose(-25, 20, Math.toRadians(132));
 
+    // lane 2
     final Pose pickUp2PoseBefore = new Pose(14, 20, Math.toRadians(90));
-    final Pose pickUp2PoseAfter  = new Pose(14, 55, Math.toRadians(90));
-    final Pose shoot2Pose        = new Pose(-31, 25, Math.toRadians(132));
+    final Pose pickUp2PoseAfter  = new Pose(14, 53, Math.toRadians(90));
 
+    final Pose dogiung  = new Pose(14, 30, Math.toRadians(90));
+
+    final Pose shoot2Pose        = new Pose(-25, 20, Math.toRadians(132));
+
+    // lane 3
     final Pose pickUp3PoseBefore = new Pose(37, 20, Math.toRadians(90));
-    final Pose pickUp3PoseAfter  = new Pose(37, 50, Math.toRadians(90));
+    final Pose pickUp3PoseAfter  = new Pose(37, 56, Math.toRadians(90));
     final Pose shoot3Pose        = new Pose(-25, 20, Math.toRadians(132));
+
+
+    // general shooting Pose
+    final Pose shootPose        = new Pose(-15, 18, Math.toRadians(134));
+
+    // open gate
+    final Pose gateOpenPose = new Pose(5, 52, Math.toRadians(90));
 
 
     enum AutoState {
@@ -62,7 +79,10 @@ public class AutoRedClose extends OpMode {
 
         SHOOT1_TO_PICKUP2,
         PICKUP2,
-        PICKUP2_TO_SHOOT2,
+
+        PICKUP2_TO_OPENGATE,
+
+        OPENGATE_TO_SHOOT2,
         SHOOT2,
 
         SHOOT2_TO_PICKUP3,
@@ -77,9 +97,9 @@ public class AutoRedClose extends OpMode {
     AutoState autoState;
 
     Path startToShoot0, shoot0ToPickup1, pickup1, pickup1ToShoot1;
-    Path shoot1ToPickup2, pickup2, pickup2ToShoot2;
+    Path shoot1ToPickup2, pickup2, doigingPath, pickup2ToShoot2;
     Path shoot2ToPickup3, pickup3, pickup3ToShoot3;
-
+    Path gateOpenPath;
 
     void buildPaths(){
         startToShoot0 = new Path(new BezierLine(startPose, shoot0Pose));
@@ -93,30 +113,37 @@ public class AutoRedClose extends OpMode {
         pickup1.setLinearHeadingInterpolation(pickUp1PoseBefore.getHeading(), pickUp1PoseAfter.getHeading());
         pickup1.setVelocityConstraint(0.7);
 
-        pickup1ToShoot1 = new Path(new BezierLine(pickUp1PoseAfter, shoot1Pose));
-        pickup1ToShoot1.setLinearHeadingInterpolation(pickUp1PoseAfter.getHeading(),shoot1Pose.getHeading());
+        pickup1ToShoot1 = new Path(new BezierLine(pickUp1PoseAfter, shootPose));
+        pickup1ToShoot1.setLinearHeadingInterpolation(pickUp1PoseAfter.getHeading(),shootPose.getHeading());
 
 
-        shoot1ToPickup2 = new Path(new BezierLine(shoot1Pose, pickUp2PoseBefore));
-        shoot1ToPickup2.setLinearHeadingInterpolation(shoot1Pose.getHeading(), pickUp2PoseBefore.getHeading());
+        shoot1ToPickup2 = new Path(new BezierLine(shootPose, pickUp2PoseBefore));
+        shoot1ToPickup2.setLinearHeadingInterpolation(shootPose.getHeading(), pickUp2PoseBefore.getHeading());
 
         pickup2 = new Path(new BezierLine(pickUp2PoseBefore, pickUp2PoseAfter));
+        pickup2.setVelocityConstraint(0.2);
         pickup2.setLinearHeadingInterpolation(pickUp2PoseBefore.getHeading(), pickUp2PoseAfter.getHeading());
-        pickup2.setVelocityConstraint(0.7);
 
-        pickup2ToShoot2 = new Path(new BezierLine(pickUp2PoseAfter, shoot2Pose));
-        pickup2ToShoot2.setLinearHeadingInterpolation(pickUp2PoseAfter.getHeading(), shoot2Pose.getHeading());
+        doigingPath = new Path(new BezierLine(pickUp2PoseAfter, dogiung));
+        doigingPath.setLinearHeadingInterpolation(pickUp2PoseAfter.getHeading(), dogiung.getHeading());
 
 
-        shoot2ToPickup3 = new Path(new BezierLine(shoot2Pose, pickUp3PoseBefore));
-        shoot2ToPickup3.setLinearHeadingInterpolation(shoot2Pose.getHeading(), pickUp3PoseBefore.getHeading());
+        gateOpenPath = new Path(new BezierLine(dogiung, gateOpenPose));
+        gateOpenPath.setLinearHeadingInterpolation(dogiung.getHeading(), gateOpenPose.getHeading());
+
+
+        pickup2ToShoot2 = new Path(new BezierLine(gateOpenPose, shootPose));
+        pickup2ToShoot2.setLinearHeadingInterpolation(gateOpenPose.getHeading(), shootPose.getHeading());
+
+        shoot2ToPickup3 = new Path(new BezierLine(shootPose, pickUp3PoseBefore));
+        shoot2ToPickup3.setLinearHeadingInterpolation(shootPose.getHeading(), pickUp3PoseBefore.getHeading());
 
         pickup3 = new Path(new BezierLine(pickUp3PoseBefore, pickUp3PoseAfter));
         pickup3.setLinearHeadingInterpolation(pickUp3PoseBefore.getHeading(), pickUp3PoseAfter.getHeading());
         pickup3.setVelocityConstraint(0.7);
 
-        pickup3ToShoot3 = new Path(new BezierLine(pickUp3PoseAfter, shoot3Pose));
-        pickup3ToShoot3.setLinearHeadingInterpolation(pickUp3PoseAfter.getHeading(), shoot3Pose.getHeading());
+        pickup3ToShoot3 = new Path(new BezierLine(pickUp3PoseAfter, shootPose));
+        pickup3ToShoot3.setLinearHeadingInterpolation(pickUp3PoseAfter.getHeading(), shootPose.getHeading());
 
     }
 
@@ -124,8 +151,12 @@ public class AutoRedClose extends OpMode {
         switch (autoState) {
             case WAITING:
                 if (autoTimer.getElapsedTime() >= START_WAITING_TIMER) {
-                    robotAuto.drivetrainAuto.followPathAndHold(startToShoot0);
-                    setAutoState(AutoState.START_TO_SHOOT0);
+                    /* robotAuto.drivetrainAuto.followPathAndHold(startToShoot0);
+                    setAutoState(AutoState.START_TO_SHOOT0);*/
+
+                    robotAuto.resetShots();
+                    robotAuto.setState(Robot.State.SHOOTING);
+                    setAutoState(AutoState.SHOOT0);
                 }
                 break;
             case START_TO_SHOOT0:
@@ -182,12 +213,24 @@ public class AutoRedClose extends OpMode {
             case PICKUP2:
                 if(!robotAuto.drivetrainAuto.isFollowerBusy()){
                     robotAuto.setState(Robot.State.STORING);
-                    robotAuto.drivetrainAuto.followPathAndHold(pickup2ToShoot2);
-                    setAutoState(AutoState.PICKUP2_TO_SHOOT2);
+                    robotAuto.drivetrainAuto.followPathAndHold(gateOpenPath);
+                    setAutoState(AutoState.PICKUP2_TO_OPENGATE);
                 }
                 break;
 
-            case PICKUP2_TO_SHOOT2:
+
+            case PICKUP2_TO_OPENGATE:
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()) {
+                    robotAuto.drivetrainAuto.followPathAndHold(doigingPath);
+                }
+                if(!robotAuto.drivetrainAuto.isFollowerBusy()) {
+                    robotAuto.drivetrainAuto.followPathAndHold(pickup2ToShoot2);
+                    setAutoState(AutoState.OPENGATE_TO_SHOOT2);
+                }
+                break;
+
+
+            case OPENGATE_TO_SHOOT2:
                 if(!robotAuto.drivetrainAuto.isFollowerBusy()){
                     robotAuto.resetShots();
                     robotAuto.setState(Robot.State.SHOOTING);

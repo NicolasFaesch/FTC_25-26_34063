@@ -19,7 +19,7 @@ public class Shooter {
     // Feeder Timings (in milliseconds)
     private static final long FEEDER_TRAVEL_TIME_UP = 120; // time for the feeder servo to move up or down
     private static final long FEEDER_TRAVEL_TIME_DOWN = 100; // time for the feeder servo to move up or down
-    private static final long FEEDER_IDLE_TIME = 100; // time the feeder has to wait for ball to come into position
+    private static final long FEEDER_IDLE_TIME = 200; // time the feeder has to wait for ball to come into position
 
     // Feeder Positions
     private static final double FEEDER_RETRACTED = 0.825; // 0.95
@@ -291,7 +291,7 @@ public class Shooter {
         return shooterVelocity;
     }
 
-    private void setShooterTargetVelocity(double shooterTargetVelocity) {
+    public void setShooterTargetVelocity(double shooterTargetVelocity) {
         shooterLeft.setVelocity(toTPS(shooterTargetVelocity));
         shooterRight.setVelocity(toTPS(shooterTargetVelocity));
     }

@@ -12,6 +12,10 @@ public class DrivetrainAuto extends Drivetrain {
         super(hardwareMap, startPose);
     }
 
+    public void update() {
+        follower.update();
+    }
+
     public boolean isFollowerBusy() {return follower.isBusy();}
 
     public boolean isAtEnd() {return follower.atParametricEnd();}
