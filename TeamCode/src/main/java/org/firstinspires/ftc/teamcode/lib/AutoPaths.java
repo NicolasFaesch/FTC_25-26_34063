@@ -98,88 +98,87 @@ public class AutoPaths {
     public void buildPaths() {
         // Start Close to other Poses
         startCloseToIntakingClose = createBezierLine(AutoPoses.startPoseClose, AutoPoses.intakingCloseBefore);
-        /*
-        startCloseToIntakingMiddle;
-        startCloseToIntakingFar;
-        startCloseToShootClose;
-        startCloseToShootCloseParked;
-        startCloseToGateIntaking;
-        startCloseToGateReleasing;
-
+        startCloseToIntakingMiddle = createBezierLine(AutoPoses.startPoseClose, AutoPoses.intakingMiddleBefore);
+        startCloseToIntakingFar = createBezierLine(AutoPoses.startPoseClose, AutoPoses.intakingFarBefore);
+        startCloseToShootClose = createBezierLine(AutoPoses.startPoseClose, AutoPoses.shootClose);
+        startCloseToShootCloseParked = createBezierLine(AutoPoses.startPoseClose, AutoPoses.shootClosePark);
+        startCloseToGateIntaking = createBezierLine(AutoPoses.startPoseClose, AutoPoses.gateIntaking);
+        startCloseToGateReleasing = createBezierLine(AutoPoses.startPoseClose, AutoPoses.gateReleasing);
+        startCloseToLoadingZone = createBezierLine(AutoPoses.startPoseClose, AutoPoses.loadingZoneBefore);
 
         // Start Far to other Poses
-        startFarToShootFar;
-        startFarToParkedFar;
-        startFarToGateIntaking;
-        startFarToGateReleasing;
-
+        startFarToIntakingClose = createBezierLine(AutoPoses.startPoseFar, AutoPoses.intakingCloseBefore);
+        startFarToIntakingMiddle = createBezierLine(AutoPoses.startPoseFar, AutoPoses.intakingMiddleBefore);
+        startFarToIntakingFar = createBezierLine(AutoPoses.startPoseFar, AutoPoses.intakingFarBefore);
+        startFarToShootFar = createBezierLine(AutoPoses.startPoseFar, AutoPoses.shootFar);
+        startFarToParkedFar = createBezierLine(AutoPoses.startPoseFar, AutoPoses.parkFar);
+        startFarToGateIntaking = createBezierLine(AutoPoses.startPoseFar, AutoPoses.gateIntaking);
+        startFarToGateReleasing = createBezierLine(AutoPoses.startPoseFar, AutoPoses.gateReleasing);
+        startFarToLoadingZone = createBezierLine(AutoPoses.startPoseFar, AutoPoses.loadingZoneBefore);
 
         // Shoot Close to Intaking
-        shootCloseToIntakingMiddle;
-        shootCloseToIntakingFar;
-        shootCloseToGateIntaking;
-        shootCloseToIntakingClose;
-        shootCloseToGateReleasing;
-        shootCloseToLoadingZone;
-
+        shootCloseToIntakingClose = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingCloseAfter);
+        shootCloseToIntakingMiddle = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingMiddleAfter);
+        shootCloseToIntakingFar = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingFarAfter);
+        shootCloseToGateIntaking = createBezierLine(AutoPoses.shootClose, AutoPoses.gateIntaking);
+        shootCloseToGateReleasing = createBezierLine(AutoPoses.shootClose, AutoPoses.gateReleasing);
+        shootCloseToLoadingZone = createBezierLine(AutoPoses.shootClose, AutoPoses.loadingZoneAfter);
 
         // Shoot Far to Intaking
-        shootFarToIntakingClose;
-        shootFarToIntakingMiddle;
-        shootFarToIntakingFar;
-        shootFarToGateIntaking;
-        shootFarToGateReleasing;
-        shootFarToLoadingZone;
+        shootFarToIntakingClose = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingCloseAfter);
+        shootFarToIntakingMiddle = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingMiddleAfter);
+        shootFarToIntakingFar = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingFarAfter);
+        shootFarToGateIntaking = createBezierLine(AutoPoses.shootFar, AutoPoses.gateIntaking);
+        shootFarToGateReleasing = createBezierLine(AutoPoses.shootFar, AutoPoses.gateReleasing);
+        shootFarToLoadingZone = createBezierLine(AutoPoses.shootFar, AutoPoses.loadingZoneAfter);
 
         // Intaking Paths
-        intakingClose;
-        intakingMiddle;
-        intakingFar;
-        intakingLoadingZone;
-
+        intakingClose = createBezierLine(AutoPoses.intakingCloseBefore, AutoPoses.intakingCloseAfter);
+        intakingMiddle = createBezierLine(AutoPoses.intakingMiddleBefore, AutoPoses.intakingMiddleAfter);
+        intakingFar = createBezierLine(AutoPoses.intakingFarBefore, AutoPoses.intakingFarAfter);
+        intakingLoadingZone = createBezierLine(AutoPoses.loadingZoneBefore, AutoPoses.loadingZoneAfter);
 
         // Intaking to Gate Releasing
-        intakingCloseToGateReleasing;
-        intakingMiddleToGateReleasing;
-        intakingFarToGateReleasing;
-        loadingZoneToGateReleasing;
+        intakingCloseToGateReleasing = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.gateReleasing);
+        intakingMiddleToGateReleasing = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.gateReleasing);
+        intakingFarToGateReleasing = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.gateReleasing);
+        loadingZoneToGateReleasing = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.gateReleasing);
 
         // Gate Releasing to Intaking
-        gateReleasingToIntakingClose;
-        gateReleasingToIntakingMiddle;
-        gateReleasingToIntakingFar;
-        gateReleasingToLoadingZone;
+        gateReleasingToIntakingClose = createBezierLine(AutoPoses.gateReleasing, AutoPoses.intakingCloseAfter);
+        gateReleasingToIntakingMiddle = createBezierLine(AutoPoses.gateReleasing, AutoPoses.intakingMiddleAfter);
+        gateReleasingToIntakingFar = createBezierLine(AutoPoses.gateReleasing, AutoPoses.intakingFarAfter);
+        gateReleasingToLoadingZone = createBezierLine(AutoPoses.gateReleasing, AutoPoses.loadingZoneAfter);
 
         // Objective To Shooting Close
-        intakingCloseToShootClose;
-        intakingMiddleToShootClose;
-        intakingFarToShootClose;
-        gateReleasingToShootClose;
-        gateIntakingToShootClose;
-        loadingZoneToShootClose;
+        intakingCloseToShootClose = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.shootClose);
+        intakingMiddleToShootClose = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.shootClose);
+        intakingFarToShootClose = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.shootClose);
+        gateReleasingToShootClose = createBezierLine(AutoPoses.gateReleasing, AutoPoses.shootClose);
+        gateIntakingToShootClose = createBezierLine(AutoPoses.gateIntaking, AutoPoses.shootClose);
+        loadingZoneToShootClose = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.shootClose);
 
         // Objective To Shooting Far
-        intakingCloseToShootFar;
-        intakingMiddleToShootFar;
-        intakingFarToShootFar;
-        gateReleasingToShootFar;
-        gateIntakingToShootFar;
-        loadingZoneToShootFar;
+        intakingCloseToShootFar = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.shootFar);
+        intakingMiddleToShootFar = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.shootFar);
+        intakingFarToShootFar = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.shootFar);
+        gateReleasingToShootFar = createBezierLine(AutoPoses.gateReleasing, AutoPoses.shootFar);
+        gateIntakingToShootFar = createBezierLine(AutoPoses.gateIntaking, AutoPoses.shootFar);
+        loadingZoneToShootFar = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.shootFar);
 
         // Objective To Shooting Close Parked
-        intakingCloseToShootCloseParked;
-        intakingMiddleToShootCloseParked;
-        intakingFarToShootCloseParked;
-        gateReleasingToShootCloseParked;
-        gateIntakingToShootCloseParked;
-        loadingZoneToShootCloseParked;
+        intakingCloseToShootCloseParked = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.shootClosePark);
+        intakingMiddleToShootCloseParked = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.shootClosePark);
+        intakingFarToShootCloseParked = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.shootClosePark);
+        gateReleasingToShootCloseParked = createBezierLine(AutoPoses.gateReleasing, AutoPoses.shootClosePark);
+        gateIntakingToShootCloseParked = createBezierLine(AutoPoses.gateIntaking, AutoPoses.shootClosePark);
+        loadingZoneToShootCloseParked = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.shootClosePark);
 
-
-        shootFarToParkedFar;
-        gateReleasingToParkedFar;
-
-         */
+        // Remaining Paths
+        shootFarToParkedFar = createBezierLine(AutoPoses.shootFar, AutoPoses.parkFar);
+        gateReleasingToParkedFar = createBezierLine(AutoPoses.gateReleasing, AutoPoses.parkFar);
     }
+
 
 
 

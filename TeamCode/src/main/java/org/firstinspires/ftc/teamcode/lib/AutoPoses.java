@@ -38,7 +38,7 @@ public class AutoPoses {
 
     // Original Poses all for RED alliance
 
-    public static AutoPose startPoseClose = new AutoPose(0, 0, 0);
+    public static AutoPose startPoseClose = new AutoPose(30, 30, 90);
 
     public static AutoPose startPoseFar = new AutoPose(0, 0, 0);
 
