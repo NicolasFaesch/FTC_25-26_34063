@@ -16,13 +16,18 @@ public class AutoPaths {
     public static Path startCloseToShootCloseParked;
     public static Path startCloseToGateIntaking;
     public static Path startCloseToGateReleasing;
+    public static Path startCloseToLoadingZone;
 
 
     // Start Far to other Poses
+    public static Path startFarToIntakingClose;
+    public static Path startFarToIntakingMiddle;
+    public static Path startFarToIntakingFar;
     public static Path startFarToShootFar;
     public static Path startFarToParkedFar;
     public static Path startFarToGateIntaking;
     public static Path startFarToGateReleasing;
+    public static Path startFarToLoadingZone;
 
 
     // Shoot Close to Intaking
@@ -54,6 +59,12 @@ public class AutoPaths {
     public static Path intakingMiddleToGateReleasing;
     public static Path intakingFarToGateReleasing;
     public static Path loadingZoneToGateReleasing;
+
+    // Gate Releasing to Intaking
+    public static Path gateReleasingToIntakingClose;
+    public static Path gateReleasingToIntakingMiddle;
+    public static Path gateReleasingToIntakingFar;
+    public static Path gateReleasingToLoadingZone;
 
     // Objective To Shooting Close
     public static Path intakingCloseToShootClose;
@@ -132,6 +143,12 @@ public class AutoPaths {
         intakingMiddleToGateReleasing;
         intakingFarToGateReleasing;
         loadingZoneToGateReleasing;
+
+        // Gate Releasing to Intaking
+        gateReleasingToIntakingClose;
+        gateReleasingToIntakingMiddle;
+        gateReleasingToIntakingFar;
+        gateReleasingToLoadingZone;
 
         // Objective To Shooting Close
         intakingCloseToShootClose;

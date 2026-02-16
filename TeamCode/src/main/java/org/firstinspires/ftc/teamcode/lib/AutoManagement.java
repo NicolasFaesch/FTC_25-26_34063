@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.lib;
 
 import com.pedropathing.paths.Path;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 import java.util.List;
@@ -67,7 +68,7 @@ public class AutoManagement {
             case GateIntaking:
                 taskList.add(Task.DRIVE_TO_INTAKE);
                 taskList.add(Task.INTAKING);
-                if(nextObjective != Objective.GateReleasing) break;
+                if(nextObjective != Objective.GateReleasing && nextObjective != Objective.PARK) break;
                 taskList.add(Task.DRIVE_TO_SHOOT);
                 taskList.add(Task.SHOOTING);
                 break;
@@ -83,7 +84,8 @@ public class AutoManagement {
                 taskList.add(Task.SHOOTING);
                 break;
             case PARK:
-                if (!autoClose) taskList.add(Task.DRIVE);
+                taskList.add(Task.DRIVE);
+                if (autoClose) taskList.add(Task.SHOOTING);
                 taskList.add(Task.WAITING);
         }
 
@@ -108,7 +110,9 @@ public class AutoManagement {
                                 trackingPath = AutoPaths.startCloseToIntakingClose;
                             else trackingPath = AutoPaths.shootCloseToIntakingClose;
                         } else {
-                            trackingPath = AutoPaths.shootFarToIntakingClose;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startFarToIntakingClose;
+                            else trackingPath = AutoPaths.shootFarToIntakingClose;
                         }
                         break;
                     case SpikeMarkMiddle:
@@ -117,7 +121,9 @@ public class AutoManagement {
                                 trackingPath = AutoPaths.startCloseToIntakingMiddle;
                             else trackingPath = AutoPaths.shootCloseToIntakingMiddle;
                         } else {
-                            trackingPath = AutoPaths.shootFarToIntakingMiddle;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startFarToIntakingMiddle;
+                            else trackingPath = AutoPaths.shootFarToIntakingMiddle;
                         }
                         break;
                     case SpikeMarkFar:
@@ -126,7 +132,9 @@ public class AutoManagement {
                                 trackingPath = AutoPaths.startCloseToIntakingFar;
                             else trackingPath = AutoPaths.shootCloseToIntakingFar;
                         } else {
-                            trackingPath = AutoPaths.shootFarToIntakingFar;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startFarToIntakingFar;
+                            else trackingPath = AutoPaths.shootFarToIntakingFar;
                         }
                         break;
                     case GateIntaking:
@@ -135,17 +143,29 @@ public class AutoManagement {
                                 trackingPath = AutoPaths.startCloseToGateIntaking;
                             else trackingPath = AutoPaths.shootCloseToGateIntaking;
                         } else {
-                            trackingPath = AutoPaths.shootFarToGateIntaking;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startFarToGateIntaking;
+                            else trackingPath = AutoPaths.shootFarToGateIntaking;
+                        }
+                        break;
+                    case GateReleasing:
+                        if(autoClose) {
+                            trackingPath = AutoPaths.startCloseToGateReleasing;
+                        } else {
+                            trackingPath = AutoPaths.startFarToGateReleasing;
                         }
                         break;
                     case LoadingZone:
                         if(autoClose) {
-                            trackingPath = AutoPaths.shootCloseToLoadingZone;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startCloseToLoadingZone;
+                            else trackingPath = AutoPaths.shootCloseToLoadingZone;
                         } else {
-                            trackingPath = AutoPaths.shootFarToLoadingZone;
+                            if (previousObjective == Objective.SHOOTING_START)
+                                trackingPath = AutoPaths.startFarToLoadingZone;
+                            else trackingPath = AutoPaths.shootFarToLoadingZone;
                         }
                         break;
-
                     }
                 robotAuto.drivetrainAuto.followPath(trackingPath);
                 break;
@@ -160,11 +180,147 @@ public class AutoManagement {
                         break;
                     case SpikeMarkFar:
                         intakingPath = AutoPaths.intakingFar;
+                    case LoadingZone:
+                        intakingPath = AutoPaths.intakingLoadingZone;
                 }
                 robotAuto.drivetrainAuto.followPath(intakingPath, INTAKING_DRIVE_SPEED, false);
                 break;
-        }
+            case DRIVE_TO_SHOOT:
+                Path trackingPathShoot;
+                if (autoClose) {
+                    switch (previousObjective) {
+                        case SPIKE_MARK_CLOSE:
+                            trackingPathShoot = AutoPaths.intakingCloseToShootClose;
+                            break;
+                        case SpikeMarkMiddle:
+                            trackingPathShoot = AutoPaths.intakingMiddleToShootClose;
+                            break;
+                        case SpikeMarkFar:
+                            trackingPathShoot = AutoPaths.intakingFarToShootClose;
+                            break;
+                        case GateIntaking:
+                            trackingPathShoot = AutoPaths.gateIntakingToShootClose;
+                            break;
+                        case LoadingZone:
+                            trackingPathShoot = AutoPaths.loadingZoneToShootClose;
+                            break;
+                        case GateReleasing:
+                            trackingPathShoot = AutoPaths.gateReleasingToShootClose;
+                            break;
+                        case SHOOTING_START:
+                            trackingPathShoot = AutoPaths.startCloseToShootClose;
+                    }
+                } else {
+                    switch (previousObjective) {
+                        case SPIKE_MARK_CLOSE:
+                            trackingPathShoot = AutoPaths.intakingCloseToShootFar;
+                            break;
+                        case SpikeMarkMiddle:
+                            trackingPathShoot = AutoPaths.intakingMiddleToShootFar;
+                            break;
+                        case SpikeMarkFar:
+                            trackingPathShoot = AutoPaths.intakingFarToShootFar;
+                            break;
+                        case GateIntaking:
+                            trackingPathShoot = AutoPaths.gateIntakingToShootFar;
+                            break;
+                        case LoadingZone:
+                            trackingPathShoot = AutoPaths.loadingZoneToShootFar;
+                            break;
+                        case GateReleasing:
+                            trackingPathShoot = AutoPaths.gateReleasingToShootFar;
+                            break;
+                        case SHOOTING_START:
+                            trackingPathShoot = AutoPaths.startFarToShootFar;
+                    }
+                }
+                robotAuto.drivetrainAuto.followPath(trackingPathShoot);
+                break;
+            case SHOOTING:
+                break;
+            case DRIVE:
+                Path drivePath;
+                if (!autoClose) {
+                    if (currentObjective == Objective.PARK) {
+                        switch (previousObjective) {
+                            case GateReleasing:
+                                drivePath = AutoPaths.gateReleasingToParkedFar;
+                                break;
+                            case SHOOTING_START:
+                                drivePath = AutoPaths.startFarToParkedFar;
+                                break;
+                            default:
+                                drivePath = AutoPaths.shootFarToParkedFar;
+                                break;
+                        }
+                    } else if (previousObjective == Objective.GateReleasing) {
+                        switch (currentObjective) {
+                            case SPIKE_MARK_CLOSE:
+                                drivePath = AutoPaths.gateReleasingToIntakingClose;
+                                break;
+                            case SpikeMarkMiddle:
+                                drivePath = AutoPaths.gateReleasingToIntakingMiddle;
+                                break;
+                            case SpikeMarkFar:
+                                drivePath = AutoPaths.gateReleasingToIntakingFar;
+                                break;
+                            case LoadingZone:
+                                drivePath = AutoPaths.gateReleasingToLoadingZone;
+                                break;
+                        }
+                    } else if (nextObjective == Objective.GateReleasing){
+                        drivePath = AutoPaths.shootFarToGateReleasing;
+                    }
 
+                } else {
+                    if (nextObjective == Objective.GateReleasing){
+                        switch (currentObjective) {
+                            case SPIKE_MARK_CLOSE:
+                                drivePath = AutoPaths.intakingCloseToGateReleasing;
+                                break;
+                            case SpikeMarkMiddle:
+                                drivePath = AutoPaths.intakingMiddleToGateReleasing;
+                                break;
+                            case SpikeMarkFar:
+                                drivePath = AutoPaths.intakingFarToGateReleasing;
+                                break;
+                            case LoadingZone:
+                                drivePath = AutoPaths.loadingZoneToGateReleasing;
+                                break;
+                            default:
+                                drivePath = AutoPaths.shootCloseToGateReleasing;
+                                break;
+                        }
+
+                    } else if (currentObjective == Objective.PARK) {
+                        switch (previousObjective) {
+                            case SPIKE_MARK_CLOSE:
+                                drivePath = AutoPaths.intakingCloseToShootCloseParked;
+                                break;
+                            case SpikeMarkMiddle:
+                                drivePath = AutoPaths.intakingMiddleToShootCloseParked;
+                                break;
+                            case SpikeMarkFar:
+                                drivePath = AutoPaths.intakingFarToShootCloseParked;
+                                break;
+                            case GateIntaking:
+                                drivePath = AutoPaths.gateIntakingToShootCloseParked;
+                                break;
+                            case LoadingZone:
+                                drivePath = AutoPaths.loadingZoneToShootCloseParked;
+                                break;
+                            case GateReleasing:
+                                drivePath = AutoPaths.gateReleasingToShootCloseParked;
+                                break;
+                            case SHOOTING_START:
+                                drivePath = AutoPaths.startCloseToShootCloseParked;
+                                break;
+                        }
+                    }
+                }
+                robotAuto.drivetrainAuto.followPath(drivePath);
+                break;
+        }
     }
 
     public void update() {
