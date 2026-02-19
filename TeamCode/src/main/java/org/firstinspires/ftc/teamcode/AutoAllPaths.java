@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.draw;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+//import org.firstinspires.ftc.teamcode.pedroPathing.Tuning;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotAuto;
@@ -20,29 +23,34 @@ public class AutoAllPaths extends OpMode {
     @Override
     public void init() {
 
-        Pose2D startPose = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.DEGREES,0);
+        Pose2D startPose = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS,0);
 
         robotAuto = new RobotAuto(hardwareMap, Robot.Alliance.RED, startPose);
 
         autoManager = new AutoManagement(robotAuto, true);
 
-        autoManager.addObjective(AutoManagement.Objective.SHOOTING_START);
-         autoManager.addObjective(AutoManagement.Objective.SPIKE_MARK_CLOSE);
+        autoManager.addObjective(AutoManagement.Objective.SHOOT_START);
+        autoManager.addObjective(AutoManagement.Objective.SPIKE_MARK_CLOSE);
+        autoManager.addObjective(AutoManagement.Objective.SHOOT);
         autoManager.addObjective(AutoManagement.Objective.SPIKE_MARK_MIDDLE);
-        //autoManager.addObjective(AutoManagement.Objective.GATE_RELEASING);
-        //autoManager.addObjective(AutoManagement.Objective.PARK);
+        autoManager.addObjective(AutoManagement.Objective.SHOOT);
+        autoManager.addObjective(AutoManagement.Objective.GATE_RELEASING);
+        autoManager.addObjective(AutoManagement.Objective.PARK);
 
         telemetry.addLine("Ready for start");
         telemetry.update();
+
+        autoManager.start();
     }
 
     @Override
     public void init_loop() {
+        autoManager.updateTelemetry();
     }
 
     @Override
     public void start() {
-        autoManager.start();
+
     }
 
     @Override
@@ -53,5 +61,6 @@ public class AutoAllPaths extends OpMode {
 
             // Telemetrie aktualisieren
             autoManager.updateTelemetry();
+            draw();
     }
 }

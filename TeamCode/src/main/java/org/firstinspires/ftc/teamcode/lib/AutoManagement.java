@@ -21,13 +21,14 @@ public class AutoManagement {
     // ----------------------------------------------------
 
     public enum Objective {
-        SHOOTING_START,
+        SHOOT_START,
         SPIKE_MARK_CLOSE,
         SPIKE_MARK_MIDDLE,
         SPIKE_MARK_FAR,
         GATE_INTAKING,
         GATE_RELEASING,
         LOADING_ZONE,
+        SHOOT,
         PARK
     }
 
@@ -43,17 +44,20 @@ public class AutoManagement {
     // ----------------------------------------------------
     // TRANSITION KEY
     // ----------------------------------------------------
-
     private static class Key {
-        Objective from;
-        Objective to;
-        Task task;
+        Objective previousObjective;
+        Task currentTask;
+        Objective currentObjective;
         boolean autoClose;
 
-        Key(Objective from, Objective to, Task task, boolean autoClose) {
-            this.from = from;
-            this.to = to;
-            this.task = task;
+        Key(Objective previousObjective, Task currentTask, Objective currentObjective, boolean autoClose) {
+            if(currentTask == Task.INTAKING) {
+                this.previousObjective = null;
+            } else {
+                this.previousObjective = previousObjective;
+            }
+            this.currentObjective = currentObjective;
+            this.currentTask = currentTask;
             this.autoClose = autoClose;
         }
 
@@ -61,17 +65,18 @@ public class AutoManagement {
         public boolean equals(Object o) {
             if (!(o instanceof Key)) return false;
             Key k = (Key) o;
-            return from == k.from &&
-                    to == k.to &&
-                    task == k.task &&
+            return previousObjective == k.previousObjective &&
+                    currentObjective == k.currentObjective &&
+                    currentTask == k.currentTask &&
                     autoClose == k.autoClose;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(from, to, task, autoClose);
+            return Objects.hash(previousObjective, currentObjective, currentTask, autoClose);
         }
     }
+
 
     // ----------------------------------------------------
     // FIELDS
@@ -88,7 +93,6 @@ public class AutoManagement {
 
     private Objective previousObjective;
     private Objective currentObjective;
-    private Objective nextObjective;
 
     private Task currentTask;
 
@@ -132,11 +136,7 @@ public class AutoManagement {
         objectiveIndex = 0;
         currentObjective = objectives.get(objectiveIndex);
 
-        previousObjective = currentObjective;
-
-        nextObjective = (objectives.size() > 1)
-                ? objectives.get(objectiveIndex + 1)
-                : null;
+        previousObjective = null;
 
         buildTaskList();
 
@@ -144,29 +144,23 @@ public class AutoManagement {
             throw new IllegalStateException("No tasks generated for " + currentObjective);
         }
 
-        taskIndex = 0;
-        currentTask = taskList.get(taskIndex);
-
-        autoTimer.resetTimer();
-        executeCurrentTask();
+        taskIndex = -1; // for start
+        nextTask();
     }
 
 
     private void nextObjective() {
+        // Hier bleibt das previousObjective erhalten, bis das neue gesetzt wird
         previousObjective = currentObjective;
         objectiveIndex++;
 
-        if (objectiveIndex >= objectives.size())
-            return;
+        if (objectiveIndex >= objectives.size()) return;
 
         currentObjective = objectives.get(objectiveIndex);
-        nextObjective = (objectiveIndex + 1 < objectives.size())
-                ? objectives.get(objectiveIndex + 1) : null;
 
         buildTaskList();
-        taskIndex = 0;
-        currentTask = taskList.get(0);
-        executeCurrentTask();
+        taskIndex = -1;
+
     }
 
     // ----------------------------------------------------
@@ -178,39 +172,28 @@ public class AutoManagement {
         taskList.clear();
 
         switch (currentObjective) {
-
             case SPIKE_MARK_CLOSE:
             case SPIKE_MARK_MIDDLE:
             case SPIKE_MARK_FAR:
             case LOADING_ZONE:
-            case GATE_INTAKING:
                 taskList.add(Task.DRIVE_TO_INTAKE);
                 taskList.add(Task.INTAKING);
-
-                if (nextObjective == Objective.GATE_RELEASING ||
-                        nextObjective == Objective.PARK) {
-
-                    taskList.add(Task.DRIVE_TO_SHOOT);
-                    taskList.add(Task.SHOOTING);
-                }
                 break;
-
             case GATE_RELEASING:
+            case GATE_INTAKING:
                 taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
-
-            case SHOOTING_START:
-                if (!autoClose)
-                    taskList.add(Task.DRIVE_TO_SHOOT);
-
+            case SHOOT:
+                taskList.add(Task.DRIVE_TO_SHOOT);
                 taskList.add(Task.SHOOTING);
                 break;
-
+            case SHOOT_START:
+                if (!autoClose) taskList.add(Task.DRIVE_TO_SHOOT);
+                taskList.add(Task.SHOOTING);
+                break;
             case PARK:
-                taskList.add(Task.DRIVE);
-                if (autoClose)
-                    taskList.add(Task.SHOOTING);
+                //if (!autoClose || previousObjective != Objective.SHOOT) taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
         }
@@ -225,28 +208,56 @@ public class AutoManagement {
     public void nextTask() {
         autoTimer.resetTimer();
 
+
         if (taskIndex >= taskList.size() - 1) {
             nextObjective();
-            return;
         }
 
-        taskIndex++;
-        currentTask = taskList.get(taskIndex);
-        executeCurrentTask();
+        currentTask = taskList.get(++taskIndex);
+
+        // set robot state for task
+        switch (currentTask) {
+
+            case DRIVE_TO_INTAKE:
+                robotAuto.setState(Robot.State.IDLE);
+                executeCurrentPath();
+                break;
+            case DRIVE:
+            case DRIVE_TO_SHOOT:
+                robotAuto.setState(Robot.State.STORING);
+                executeCurrentPath();
+                break;
+            case INTAKING:
+                robotAuto.setState(Robot.State.INTAKING);
+                executeCurrentPath();
+                break;
+            case SHOOTING:
+                robotAuto.resetShots();
+                robotAuto.setState(Robot.State.SHOOTING);
+                break;
+            case WAITING:
+                if(currentObjective == Objective.GATE_RELEASING) {
+                    //reset timer
+                } else if (currentObjective == Objective.GATE_INTAKING) {
+                    robotAuto.setState(Robot.State.INTAKING);
+                    //other timer
+                }
+                robotAuto.setState(Robot.State.IDLE);
+                break;
+        }
+
     }
 
-    private boolean shootStarted;
-
-    private void executeCurrentTask() {
-        Key key = new Key(previousObjective, currentObjective, currentTask, autoClose);
+    private void executeCurrentPath() {
+        Key key = new Key(previousObjective, currentTask, currentObjective, autoClose);
         Path path = pathMap.get(key);
 
-        if (path == null) {
-            key = new Key(null, currentObjective, currentTask, autoClose);
-            path = pathMap.get(key);
-        }
-        if (!robotAuto.drivetrainAuto.pathStarted && autoTimer.getElapsedTimeSeconds() > 0.15) {
-            if (path != null){ robotAuto.drivetrainAuto.followPath(path);}
+        if (true) { //!robotAuto.drivetrainAuto.isFollowerBusy()
+            if (path != null){ robotAuto.drivetrainAuto.followPath(path);
+            }else {
+                panelsTelemetry.addLine("No path found");
+                throw new IllegalArgumentException("Path not defined");
+            }
         }
     }
 
@@ -266,32 +277,25 @@ public class AutoManagement {
             case DRIVE:
             case DRIVE_TO_INTAKE:
             case DRIVE_TO_SHOOT:
-                if (robotAuto.drivetrainAuto.pathStarted && !robotAuto.drivetrainAuto.isFollowerBusy()){
-                    robotAuto.setState(Robot.State.STORING);
-                    nextTask();
-                }
-                break;
-
             case INTAKING:
-                if (robotAuto.drivetrainAuto.pathStarted && !robotAuto.drivetrainAuto.isFollowerBusy()) {
-                    robotAuto.setState(Robot.State.INTAKING);
+                if (robotAuto.drivetrainAuto.isAtEnd())
                     nextTask();
-                }
                 break;
-
             case SHOOTING:
-                if (!shootStarted) {
-                    robotAuto.resetShots();
-                    robotAuto.setState(Robot.State.SHOOTING);
-                    shootStarted = true;
-                }
-                if (robotAuto.getBallsShot() >= 3) {
+                if (robotAuto.getBallsShot() >= 3)
                     nextTask();
-                }
                 break;
             case WAITING:
-                robotAuto.setState(Robot.State.IDLE);
-                nextTask();
+                if(currentObjective == Objective.GATE_RELEASING)
+                {
+                    if (true) // timer completed
+                        nextTask();
+                } else if(currentObjective == Objective.GATE_INTAKING) {
+                    if (true) // timer completed
+                        nextTask();
+                } else {
+                    // Do Nothing (parked at end)
+                 }
                 break;
         }
     }
@@ -301,256 +305,122 @@ public class AutoManagement {
     // ----------------------------------------------------
 
     private void buildPathMap() {
+        // Key-Format: (previousObjective, currentTask, currentObjective, autoClose)
 
         // =====================================================
-        // DRIVE_TO_INTAKE
+        // 1. DRIVE_TO_INTAKE (Start -> Ziel)
         // =====================================================
 
-        // ----- SPIKE_MARK_CLOSE -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_INTAKE, true),
+        // SPIKE_MARK_CLOSE
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
                 AutoPaths.startCloseToIntakingClose);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToIntakingClose);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_INTAKE, true),
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
                 AutoPaths.shootCloseToIntakingClose);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_INTAKE, false),
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
+                AutoPaths.startFarToIntakingClose);
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
                 AutoPaths.shootFarToIntakingClose);
 
-
-        // ----- SPIKE_MARK_MIDDLE -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_INTAKE, true),
+        // SPIKE_MARK_MIDDLE
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
                 AutoPaths.startCloseToIntakingMiddle);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToIntakingMiddle);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_INTAKE, true),
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
                 AutoPaths.shootCloseToIntakingMiddle);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_INTAKE, false),
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
+                AutoPaths.startFarToIntakingMiddle);
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
                 AutoPaths.shootFarToIntakingMiddle);
 
-
-        // ----- SPIKE_MARK_FAR -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_INTAKE, true),
+        // SPIKE_MARK_FAR
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
                 AutoPaths.startCloseToIntakingFar);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToIntakingFar);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_INTAKE, true),
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
                 AutoPaths.shootCloseToIntakingFar);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_INTAKE, false),
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
+                AutoPaths.startFarToIntakingFar);
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
                 AutoPaths.shootFarToIntakingFar);
 
-
-        // ----- GATE_INTAKING -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.GATE_INTAKING, Task.DRIVE_TO_INTAKE, true),
+        // GATE_INTAKING
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE, Objective.GATE_INTAKING, true),
                 AutoPaths.startCloseToGateIntaking);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.GATE_INTAKING, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToGateIntaking);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.GATE_INTAKING, Task.DRIVE_TO_INTAKE, true),
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE, Objective.GATE_INTAKING, true),
                 AutoPaths.shootCloseToGateIntaking);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.GATE_INTAKING, Task.DRIVE_TO_INTAKE, false),
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE, Objective.GATE_INTAKING, false),
+                AutoPaths.startFarToGateIntaking);
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE, Objective.GATE_INTAKING, false),
                 AutoPaths.shootFarToGateIntaking);
 
-
-        // ----- GATE_RELEASING -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, true),
-                AutoPaths.startCloseToGateReleasing);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToGateReleasing);
-
-
-        // ----- LOADING_ZONE -----
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.LOADING_ZONE, Task.DRIVE_TO_INTAKE, true),
+        // LOADING_ZONE
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
                 AutoPaths.startCloseToLoadingZone);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.LOADING_ZONE, Task.DRIVE_TO_INTAKE, false),
-                AutoPaths.startFarToLoadingZone);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.LOADING_ZONE, Task.DRIVE_TO_INTAKE, true),
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
                 AutoPaths.shootCloseToLoadingZone);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.LOADING_ZONE, Task.DRIVE_TO_INTAKE, false),
+        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
+                AutoPaths.startFarToLoadingZone);
+        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
                 AutoPaths.shootFarToLoadingZone);
 
-
+        // =====================================================
+        // 2. INTAKING (Die Aktion vor Ort)
+        // =====================================================
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_CLOSE, true), AutoPaths.intakingClose);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_MIDDLE, true), AutoPaths.intakingMiddle);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_FAR, true), AutoPaths.intakingFar);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.LOADING_ZONE, true), AutoPaths.intakingLoadingZone);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_CLOSE, false), AutoPaths.intakingClose);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_MIDDLE, false), AutoPaths.intakingMiddle);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.SPIKE_MARK_FAR, false), AutoPaths.intakingFar);
+        pathMap.put(new Key(null, Task.INTAKING, Objective.LOADING_ZONE, false), AutoPaths.intakingLoadingZone);
 
         // =====================================================
-        // INTAKING
+        // 3. DRIVE_TO_SHOOT (Zurück zum Schießen)
         // =====================================================
 
-        pathMap.put(new Key(null, Objective.SPIKE_MARK_CLOSE, Task.INTAKING, true),
-                AutoPaths.intakingClose);
+        // FAR Start to Shooting Position
+        pathMap.put(new Key(null, Task.DRIVE_TO_SHOOT, Objective.SHOOT_START, false), AutoPaths.startFarToShootFar);
 
-        pathMap.put(new Key(null, Objective.SPIKE_MARK_MIDDLE, Task.INTAKING, true),
-                AutoPaths.intakingMiddle);
+        // CLOSE Variante (true)
+        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.intakingCloseToShootClose);
+        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.intakingMiddleToShootClose);
+        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.intakingFarToShootClose);
+        pathMap.put(new Key(Objective.GATE_INTAKING, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.gateIntakingToShootClose);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.gateReleasingToShootClose);
+        pathMap.put(new Key(Objective.LOADING_ZONE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true), AutoPaths.loadingZoneToShootClose);
 
-        pathMap.put(new Key(null, Objective.SPIKE_MARK_FAR, Task.INTAKING, true),
-                AutoPaths.intakingFar);
-
-        pathMap.put(new Key(null, Objective.LOADING_ZONE, Task.INTAKING, true),
-                AutoPaths.intakingLoadingZone);
-
-
-
-        // =====================================================
-        // DRIVE_TO_SHOOT
-        // =====================================================
-
-        // ----- CLOSE -----
-        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.intakingCloseToShootClose);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.intakingMiddleToShootClose);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.intakingFarToShootClose);
-
-        pathMap.put(new Key(Objective.GATE_INTAKING, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.gateIntakingToShootClose);
-
-        pathMap.put(new Key(Objective.LOADING_ZONE, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.loadingZoneToShootClose);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.gateReleasingToShootClose);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, null, Task.DRIVE_TO_SHOOT, true),
-                AutoPaths.startCloseToShootClose);
-
-
-        // ----- FAR -----
-        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.intakingCloseToShootFar);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.intakingMiddleToShootFar);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.intakingFarToShootFar);
-
-        pathMap.put(new Key(Objective.GATE_INTAKING, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.gateIntakingToShootFar);
-
-        pathMap.put(new Key(Objective.LOADING_ZONE, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.loadingZoneToShootFar);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.gateReleasingToShootFar);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, null, Task.DRIVE_TO_SHOOT, false),
-                AutoPaths.startFarToShootFar);
-
-
+        // FAR Variante (false)
+        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.intakingCloseToShootFar);
+        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.intakingMiddleToShootFar);
+        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.intakingFarToShootFar);
+        pathMap.put(new Key(Objective.GATE_INTAKING, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.gateIntakingToShootFar);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.gateReleasingToShootFar);
+        pathMap.put(new Key(Objective.LOADING_ZONE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.loadingZoneToShootFar);
 
         // =====================================================
-        // DRIVE (PARK + SPECIAL)
+        // 4. GATE RELEASING & PARK
         // =====================================================
 
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.PARK, Task.DRIVE, false),
-                AutoPaths.gateReleasingToParkedFar);
+        // Weg zum Gate nach dem Schießen
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_RELEASING, true), AutoPaths.shootCloseToGateReleasing);
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_RELEASING, false), AutoPaths.shootFarToGateReleasing);
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_RELEASING, true), AutoPaths.startCloseToGateReleasing);
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_RELEASING, false), AutoPaths.shootFarToGateReleasing);
 
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.PARK, Task.DRIVE, false),
-                AutoPaths.startFarToParkedFar);
+        // Park Close
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE, Objective.PARK, true), AutoPaths.gateIntakingToShootCloseParked); // TODO: add path
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.PARK, true), AutoPaths.shootCloseToShootCloseParked);
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.PARK, true), AutoPaths.startCloseToShootCloseParked);
 
-        pathMap.put(new Key(null, Objective.PARK, Task.DRIVE, false),
-                AutoPaths.shootFarToParkedFar);
+        // Park Far
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE, Objective.PARK, false), AutoPaths.gateReleasingToParkedFar);
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.PARK, false), AutoPaths.startFarToParkedFar);
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.PARK, false), AutoPaths.shootFarToParkedFar);
 
-        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.intakingCloseToShootCloseParked);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.intakingMiddleToShootCloseParked);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.intakingFarToShootCloseParked);
-
-        pathMap.put(new Key(Objective.GATE_INTAKING, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.gateIntakingToShootCloseParked);
-
-        pathMap.put(new Key(Objective.LOADING_ZONE, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.loadingZoneToShootCloseParked);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.gateReleasingToShootCloseParked);
-
-        pathMap.put(new Key(Objective.SHOOTING_START, Objective.PARK, Task.DRIVE, true),
-                AutoPaths.startCloseToShootCloseParked);
-
-
-
-    // gute Überarbeiten
-
-        // SHOOT CLOSE → GATE_RELEASING
-        pathMap.put(new Key(null, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.shootCloseToGateReleasing);
-
-        // SHOOT FAR → GATE_RELEASING
-        pathMap.put(new Key(null, Objective.GATE_RELEASING, Task.DRIVE, false),
-                AutoPaths.shootFarToGateReleasing);
-
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingCloseToGateReleasing);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingMiddleToGateReleasing);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingFarToGateReleasing);
-
-        pathMap.put(new Key(Objective.LOADING_ZONE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.loadingZoneToGateReleasing);
-
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_CLOSE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingClose);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingMiddle);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_FAR, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingFar);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.LOADING_ZONE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToLoadingZone);
-
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingCloseToGateReleasing);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingMiddleToGateReleasing);
-
-        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.intakingFarToGateReleasing);
-
-        pathMap.put(new Key(Objective.LOADING_ZONE, Objective.GATE_RELEASING, Task.DRIVE, true),
-                AutoPaths.loadingZoneToGateReleasing);
-
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_CLOSE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingClose);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_MIDDLE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingMiddle);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.SPIKE_MARK_FAR, Task.DRIVE, false),
-                AutoPaths.gateReleasingToIntakingFar);
-
-        pathMap.put(new Key(Objective.GATE_RELEASING, Objective.LOADING_ZONE, Task.DRIVE, false),
-                AutoPaths.gateReleasingToLoadingZone);
+        // Spezial Park-Shootings (Close)
+        //pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.INTAKING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), AutoPaths.intakingCloseToShootCloseParked);
+        //pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.INTAKING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), AutoPaths.intakingMiddleToShootCloseParked);
+        //pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Task.INTAKING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), AutoPaths.intakingFarToShootCloseParked);
+        //pathMap.put(new Key(Objective.SHOOTING_START, Task.SHOOTING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), AutoPaths.startCloseToShootCloseParked);
     }
 
     public void updateTelemetry() {
@@ -558,11 +428,12 @@ public class AutoManagement {
         String position = String.format(Locale.US, "X: %.2f, Y: %.2f, H: %.1f",
                 botPose.getX(DistanceUnit.INCH),
                 botPose.getY(DistanceUnit.INCH),
-                Math.toDegrees(botPose.getHeading(AngleUnit.DEGREES)));
+                botPose.getHeading(AngleUnit.DEGREES));
 
         panelsTelemetry.addLine("=== Task ===");
-        panelsTelemetry.addData("previousObjective", previousObjective);
+        panelsTelemetry.addData("current Objective", currentObjective);
         panelsTelemetry.addData("currentTask", currentTask);
+        if (previousObjective != null) panelsTelemetry.addData("previousObjective", previousObjective);
 
         panelsTelemetry.addLine("=== ROBOT STATES ===");
         panelsTelemetry.addData("Robot State", robotAuto.getState());

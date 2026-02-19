@@ -20,11 +20,8 @@ public class DrivetrainAuto extends Drivetrain {
 
     public boolean isAtEnd() {return follower.atParametricEnd();}
 
-    public boolean pathStarted = false;
-
     public void followPath(Path path) {
         follower.followPath(path);
-        pathStarted = true;
     }
 
     public void followPathAndHold(Path path) {follower.followPath(path, true);}

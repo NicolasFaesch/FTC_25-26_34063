@@ -50,7 +50,7 @@ public class Drivetrain {
     }
 
     public double getVelocityY() {
-        return inchToMeter(follower.getVelocity().getXComponent());
+        return inchToMeter(follower.getVelocity().getYComponent());
     }
 
     public double getAngularVelocity() {

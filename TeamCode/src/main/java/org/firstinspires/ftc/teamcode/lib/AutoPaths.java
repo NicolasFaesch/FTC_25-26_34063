@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.lib;
 
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -89,6 +90,7 @@ public class AutoPaths {
     public static Path gateReleasingToShootCloseParked;
     public static Path gateIntakingToShootCloseParked;
     public static Path loadingZoneToShootCloseParked;
+    public static Path shootCloseToShootCloseParked;
 
 
     public static Path shootFarToParkedFar;
@@ -117,32 +119,33 @@ public class AutoPaths {
         startFarToLoadingZone = createBezierLine(AutoPoses.startPoseFar, AutoPoses.loadingZoneBefore);
 
         // Shoot Close to Intaking
-        shootCloseToIntakingClose = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingCloseAfter);
-        shootCloseToIntakingMiddle = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingMiddleAfter);
-        shootCloseToIntakingFar = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingFarAfter);
+        shootCloseToIntakingClose = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingCloseBefore);
+        shootCloseToIntakingMiddle = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingMiddleBefore);
+        shootCloseToIntakingFar = createBezierLine(AutoPoses.shootClose, AutoPoses.intakingFarBefore);
         shootCloseToGateIntaking = createBezierLine(AutoPoses.shootClose, AutoPoses.gateIntaking);
-        shootCloseToGateReleasing = createBezierLine(AutoPoses.shootClose, AutoPoses.gateReleasing);
-        shootCloseToLoadingZone = createBezierLine(AutoPoses.shootClose, AutoPoses.loadingZoneAfter);
+        shootCloseToLoadingZone = createBezierLine(AutoPoses.shootClose, AutoPoses.loadingZoneBefore);
 
         // Shoot Far to Intaking
-        shootFarToIntakingClose = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingCloseAfter);
-        shootFarToIntakingMiddle = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingMiddleAfter);
-        shootFarToIntakingFar = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingFarAfter);
+        shootFarToIntakingClose = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingCloseBefore);
+        shootFarToIntakingMiddle = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingMiddleBefore);
+        shootFarToIntakingFar = createBezierLine(AutoPoses.shootFar, AutoPoses.intakingFarBefore);
         shootFarToGateIntaking = createBezierLine(AutoPoses.shootFar, AutoPoses.gateIntaking);
-        shootFarToGateReleasing = createBezierLine(AutoPoses.shootFar, AutoPoses.gateReleasing);
-        shootFarToLoadingZone = createBezierLine(AutoPoses.shootFar, AutoPoses.loadingZoneAfter);
+        shootFarToLoadingZone = createBezierLine(AutoPoses.shootFar, AutoPoses.loadingZoneBefore);
+
+        // To Gate Releasing
+        shootCloseToGateReleasing = createBezierCurve(AutoPoses.shootClose, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+        shootFarToGateReleasing = createBezierCurve(AutoPoses.shootFar, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+        intakingCloseToGateReleasing = createBezierCurve(AutoPoses.intakingCloseAfter, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+        intakingMiddleToGateReleasing = createBezierCurve(AutoPoses.intakingMiddleAfter, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+        intakingFarToGateReleasing = createBezierCurve(AutoPoses.intakingFarAfter, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+        loadingZoneToGateReleasing = createBezierCurve(AutoPoses.loadingZoneAfter, AutoPoses.gateReleasingControlPoint, AutoPoses.gateReleasing);
+
 
         // Intaking Paths
         intakingClose = createBezierLine(AutoPoses.intakingCloseBefore, AutoPoses.intakingCloseAfter);
         intakingMiddle = createBezierLine(AutoPoses.intakingMiddleBefore, AutoPoses.intakingMiddleAfter);
         intakingFar = createBezierLine(AutoPoses.intakingFarBefore, AutoPoses.intakingFarAfter);
         intakingLoadingZone = createBezierLine(AutoPoses.loadingZoneBefore, AutoPoses.loadingZoneAfter);
-
-        // Intaking to Gate Releasing
-        intakingCloseToGateReleasing = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.gateReleasing);
-        intakingMiddleToGateReleasing = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.gateReleasing);
-        intakingFarToGateReleasing = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.gateReleasing);
-        loadingZoneToGateReleasing = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.gateReleasing);
 
         // Gate Releasing to Intaking
         gateReleasingToIntakingClose = createBezierLine(AutoPoses.gateReleasing, AutoPoses.intakingCloseAfter);
@@ -173,6 +176,7 @@ public class AutoPaths {
         gateReleasingToShootCloseParked = createBezierLine(AutoPoses.gateReleasing, AutoPoses.shootClosePark);
         gateIntakingToShootCloseParked = createBezierLine(AutoPoses.gateIntaking, AutoPoses.shootClosePark);
         loadingZoneToShootCloseParked = createBezierLine(AutoPoses.loadingZoneAfter, AutoPoses.shootClosePark);
+        shootCloseToShootCloseParked = createBezierLine(AutoPoses.startPoseClose, AutoPoses.shootClosePark);
 
         // Remaining Paths
         shootFarToParkedFar = createBezierLine(AutoPoses.shootFar, AutoPoses.parkFar);
@@ -186,6 +190,16 @@ public class AutoPaths {
         Pose startPose = startAutoPose.getPose();
         Pose endPose = endAutoPose.getPose();
         Path path = new Path(new BezierLine(startPose, endPose));
+        path.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
+
+        return path;
+    }
+
+    private Path createBezierCurve(AutoPoses.AutoPose startAutoPose, AutoPoses.AutoPose controlPoint, AutoPoses.AutoPose endAutoPose) {
+        Pose startPose = startAutoPose.getPose();
+        Pose controlPose = controlPoint.getPose();
+        Pose endPose = endAutoPose.getPose();
+        Path path = new Path(new BezierCurve(startPose, controlPose, endPose));
         path.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
 
         return path;

@@ -24,7 +24,7 @@ public class AutoPoses {
         public AutoPose(double x, double y, double h) {
             this.x = x;
             this.y = y;
-            this.h = h;
+            this.h = Math.toRadians(h);
         }
 
         public Pose getPose() {
@@ -36,38 +36,40 @@ public class AutoPoses {
 
 
 
-    // Original Poses all for RED alliance
+    // RED Alliance
 
-    public static AutoPose startPoseClose = new AutoPose(30, 30, 90);
+    // Start
+    public static AutoPose startPoseClose = new AutoPose(-70, 11, 90);
+    public static AutoPose startPoseFar   = new AutoPose(65, 7, 90);
 
-    public static AutoPose startPoseFar = new AutoPose(0, 0, 0);
+    // Intake BEFORE (xBefore, yBefore, h)
+    public static AutoPose intakingCloseBefore  = new AutoPose(-10, 20, 90);
+    public static AutoPose intakingMiddleBefore = new AutoPose(13, 20, 90);
+    public static AutoPose intakingFarBefore    = new AutoPose(37, 20, 90);
 
-    public static AutoPose intakingCloseBefore = new AutoPose(0, 0, 0);
-    public static AutoPose intakingMiddleBefore = new AutoPose(0, 0, 0);
+    // Intake AFTER (xAfter, yAfter, h)
+    public static AutoPose intakingCloseAfter  = new AutoPose(-10, 47, 90);
+    public static AutoPose intakingMiddleAfter = new AutoPose(13, 47, 90);
+    public static AutoPose intakingFarAfter    = new AutoPose(37, 47, 90);
 
-    public static AutoPose intakingFarBefore = new AutoPose(0, 0, 0);
+    // Shooting
+    public static AutoPose shootClose = new AutoPose(-26, 32, 136);
+    public static AutoPose shootFar   = new AutoPose(55, 14, 160);
 
-    public static AutoPose intakingCloseAfter = new AutoPose(0, 0, 0);
-
-    public static AutoPose intakingMiddleAfter = new AutoPose(0, 0, 0);
-
-    public static AutoPose intakingFarAfter = new AutoPose(0, 0, 0);
-
-    public static AutoPose shootClose = new AutoPose(0, 0, 0);
-
-    public static AutoPose shootFar = new AutoPose(0, 0, 0);
-
+    // Optional (nicht in alten Config aktiv genutzt)
     public static AutoPose shootClosePark = new AutoPose(0, 0, 0);
+    public static AutoPose parkFar        = new AutoPose(0, 0, 0);
 
-    public static AutoPose parkFar = new AutoPose(0, 0, 0);
+    // Gate (aus gate[0])
+    public static AutoPose gateReleasing = new AutoPose(0, 54, 90);
 
-    public static AutoPose gateIntaking = new AutoPose(0, 0, 0);
-
-    public static AutoPose gateReleasing = new AutoPose(0, 0, 0);
-
+    // Offen lassen wie gewünscht
+    public static AutoPose gateIntaking     = new AutoPose(0, 0, 0);
     public static AutoPose loadingZoneBefore = new AutoPose(0, 0, 0);
+    public static AutoPose loadingZoneAfter  = new AutoPose(0, 0, 0);
 
-    public static AutoPose loadingZoneAfter = new AutoPose(0, 0, 0);
+    public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
+
 
 
 
