@@ -1,6 +1,13 @@
 package org.firstinspires.ftc.teamcode.lib;
 
+
+import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
+
+import com.arcrobotics.ftclib.util.Timing;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.Style;
 
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.paths.Path;
@@ -13,8 +20,15 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotAuto;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class AutoManagement {
+
+    // Feld zum Zeichnen
+    private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+    private final FieldManager panelsField;
+
+
 
     // ----------------------------------------------------
     // ENUMS
@@ -29,6 +43,7 @@ public class AutoManagement {
         GATE_RELEASING,
         LOADING_ZONE,
         SHOOT,
+        SHOOT_END,
         PARK
     }
 
@@ -82,8 +97,6 @@ public class AutoManagement {
     // FIELDS
     // ----------------------------------------------------
 
-    private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
-
     private final List<Objective> objectives = new ArrayList<>();
     private final List<Task> taskList = new ArrayList<>();
     private final Map<Key, Path> pathMap = new HashMap<>();
@@ -95,6 +108,9 @@ public class AutoManagement {
     private Objective currentObjective;
 
     private Task currentTask;
+
+    private Timing.Timer gateReleasingTimer = new Timing.Timer(AutoConstants.GATE_RELEASING_TIME, TimeUnit.MILLISECONDS);
+    private Timing.Timer gateIntakingTimer = new Timing.Timer(AutoConstants.GATE_INTAKING_TIME, TimeUnit.MILLISECONDS);
 
     // ----------------------------------------------------
     // CONSTRUCTOR
@@ -108,6 +124,9 @@ public class AutoManagement {
 
         this.robotAuto = robotAuto;
         this.autoClose = autoClose;
+
+        this.panelsField = PanelsField.INSTANCE.getField();
+        this.panelsField.init();
 
         AutoPaths autoPaths = new AutoPaths();
         autoPaths.buildPaths();
@@ -184,6 +203,7 @@ public class AutoManagement {
                 taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
+            case SHOOT_END:
             case SHOOT:
                 taskList.add(Task.DRIVE_TO_SHOOT);
                 taskList.add(Task.SHOOTING);
@@ -237,10 +257,10 @@ public class AutoManagement {
                 break;
             case WAITING:
                 if(currentObjective == Objective.GATE_RELEASING) {
-                    //reset timer
+                    gateReleasingTimer.start();
                 } else if (currentObjective == Objective.GATE_INTAKING) {
                     robotAuto.setState(Robot.State.INTAKING);
-                    //other timer
+                    gateIntakingTimer.start();
                 }
                 robotAuto.setState(Robot.State.IDLE);
                 break;
@@ -253,7 +273,23 @@ public class AutoManagement {
         Path path = pathMap.get(key);
 
         if (true) { //!robotAuto.drivetrainAuto.isFollowerBusy()
-            if (path != null){ robotAuto.drivetrainAuto.followPath(path);
+            if (path != null){
+
+                switch(currentTask) {
+                    case INTAKING:
+                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.INTAKING_DRIVE_SPEED);
+                        robotAuto.drivetrainAuto.followPath(path);
+                        break;
+                    case DRIVE_TO_SHOOT:
+                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
+                        robotAuto.drivetrainAuto.followPathAndHold(path);
+                        break;
+                    default:
+                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
+                        robotAuto.drivetrainAuto.followPath(path);
+                        break;
+                }
+
             }else {
                 panelsTelemetry.addLine("No path found");
                 throw new IllegalArgumentException("Path not defined");
@@ -288,14 +324,14 @@ public class AutoManagement {
             case WAITING:
                 if(currentObjective == Objective.GATE_RELEASING)
                 {
-                    if (true) // timer completed
+                    if (gateReleasingTimer.done()) // timer completed
                         nextTask();
                 } else if(currentObjective == Objective.GATE_INTAKING) {
-                    if (true) // timer completed
+                    if (gateIntakingTimer.done()) // timer completed
                         nextTask();
                 } else {
                     // Do Nothing (parked at end)
-                 }
+                }
                 break;
         }
     }
@@ -320,6 +356,10 @@ public class AutoManagement {
                 AutoPaths.startFarToIntakingClose);
         pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
                 AutoPaths.shootFarToIntakingClose);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
+                AutoPaths.gateReleasingToIntakingClose);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
+                AutoPaths.gateReleasingToIntakingClose);
 
         // SPIKE_MARK_MIDDLE
         pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
@@ -330,6 +370,10 @@ public class AutoManagement {
                 AutoPaths.startFarToIntakingMiddle);
         pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
                 AutoPaths.shootFarToIntakingMiddle);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
+                AutoPaths.gateReleasingToIntakingMiddle);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
+                AutoPaths.gateReleasingToIntakingMiddle);
 
         // SPIKE_MARK_FAR
         pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
@@ -340,6 +384,10 @@ public class AutoManagement {
                 AutoPaths.startFarToIntakingFar);
         pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
                 AutoPaths.shootFarToIntakingFar);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
+                AutoPaths.gateReleasingToIntakingFar);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
+                AutoPaths.gateReleasingToIntakingFar);
 
         // GATE_INTAKING
         pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE, Objective.GATE_INTAKING, true),
@@ -360,6 +408,10 @@ public class AutoManagement {
                 AutoPaths.startFarToLoadingZone);
         pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
                 AutoPaths.shootFarToLoadingZone);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
+                AutoPaths.gateReleasingToLoadingZone);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
+                AutoPaths.gateReleasingToLoadingZone);
 
         // =====================================================
         // 2. INTAKING (Die Aktion vor Ort)
@@ -396,6 +448,22 @@ public class AutoManagement {
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.gateReleasingToShootFar);
         pathMap.put(new Key(Objective.LOADING_ZONE, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false), AutoPaths.loadingZoneToShootFar);
 
+        // CLOSE End
+        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.intakingCloseToShootCloseParked);
+        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.intakingMiddleToShootCloseParked);
+        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.intakingFarToShootCloseParked);
+        pathMap.put(new Key(Objective.GATE_INTAKING, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.gateIntakingToShootCloseParked);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.gateReleasingToShootCloseParked);
+        pathMap.put(new Key(Objective.LOADING_ZONE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, true), AutoPaths.loadingZoneToShootCloseParked);
+
+        // FAR End (same as far normal)
+        pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.intakingCloseToShootFar);
+        pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.intakingMiddleToShootFar);
+        pathMap.put(new Key(Objective.SPIKE_MARK_FAR, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.intakingFarToShootFar);
+        pathMap.put(new Key(Objective.GATE_INTAKING, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.gateIntakingToShootFar);
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.gateReleasingToShootFar);
+        pathMap.put(new Key(Objective.LOADING_ZONE, Task.DRIVE_TO_SHOOT, Objective.SHOOT_END, false), AutoPaths.loadingZoneToShootFar);
+
         // =====================================================
         // 4. GATE RELEASING & PARK
         // =====================================================
@@ -424,33 +492,38 @@ public class AutoManagement {
     }
 
     public void updateTelemetry() {
+        // Position
         Pose2D botPose = robotAuto.drivetrainAuto.getPose();
         String position = String.format(Locale.US, "X: %.2f, Y: %.2f, H: %.1f",
                 botPose.getX(DistanceUnit.INCH),
                 botPose.getY(DistanceUnit.INCH),
                 botPose.getHeading(AngleUnit.DEGREES));
 
+        // Task / Objective
         panelsTelemetry.addLine("=== Task ===");
         panelsTelemetry.addData("current Objective", currentObjective);
         panelsTelemetry.addData("currentTask", currentTask);
         if (previousObjective != null) panelsTelemetry.addData("previousObjective", previousObjective);
 
+        // Robot States
         panelsTelemetry.addLine("=== ROBOT STATES ===");
         panelsTelemetry.addData("Robot State", robotAuto.getState());
         panelsTelemetry.addData("Intake State", robotAuto.intake.getState());
         panelsTelemetry.addData("Transfer State", robotAuto.transfer.getState());
         panelsTelemetry.addData("Shooter State", robotAuto.shooter.getState());
 
+        // Pose
         panelsTelemetry.addLine("=== POSE ===");
-        if(!robotAuto.isUsingLimelight()) {
+        if (!robotAuto.isUsingLimelight()) {
             panelsTelemetry.addData("Odometry", position);
         } else {
             panelsTelemetry.addData("Limelight", position);
         }
         panelsTelemetry.addData("Distance", robotAuto.drivetrainAuto.getDistance());
 
+        // Shooter Info
         panelsTelemetry.addLine("=== SHOOTER ===");
-        if(robotAuto.shooter.getManualOverride()) {
+        if (robotAuto.shooter.getManualOverride()) {
             panelsTelemetry.addLine("Shooter: MANUAL OVERRIDE");
             panelsTelemetry.addData("Hood Position (manual)", robotAuto.shooter.getHoodPositionManual());
             panelsTelemetry.addData("Target Velocity (manual)", robotAuto.shooter.getShooterTargetVelocityManual());
@@ -460,6 +533,9 @@ public class AutoManagement {
         }
         panelsTelemetry.addData("Current Velocity", robotAuto.shooter.getShooterVelocity());
 
+        // Update PanelsTelemetry
+        //drawPath();
+        drawDebug(robotAuto.drivetrainAuto.getFollower());
         panelsTelemetry.update();
     }
 }

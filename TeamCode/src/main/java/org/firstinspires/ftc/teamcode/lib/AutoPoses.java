@@ -43,21 +43,21 @@ public class AutoPoses {
     public static AutoPose startPoseFar   = new AutoPose(65, 7, 90);
 
     // Intake BEFORE (xBefore, yBefore, h)
-    public static AutoPose intakingCloseBefore  = new AutoPose(-10, 20, 90);
-    public static AutoPose intakingMiddleBefore = new AutoPose(13, 20, 90);
-    public static AutoPose intakingFarBefore    = new AutoPose(37, 20, 90);
+    public static AutoPose intakingCloseBefore  = new AutoPose(-14, 27, 90);
+    public static AutoPose intakingMiddleBefore = new AutoPose(12, 27, 90);
+    public static AutoPose intakingFarBefore    = new AutoPose(35, 27, 90);
 
     // Intake AFTER (xAfter, yAfter, h)
-    public static AutoPose intakingCloseAfter  = new AutoPose(-10, 47, 90);
-    public static AutoPose intakingMiddleAfter = new AutoPose(13, 47, 90);
-    public static AutoPose intakingFarAfter    = new AutoPose(37, 47, 90);
+    public static AutoPose intakingCloseAfter  = new AutoPose(-14, 49, 90);
+    public static AutoPose intakingMiddleAfter = new AutoPose(12, 49, 90);
+    public static AutoPose intakingFarAfter    = new AutoPose(35, 49, 90);
 
     // Shooting
-    public static AutoPose shootClose = new AutoPose(-26, 32, 136);
+    public static AutoPose shootClose = new AutoPose(-19, 22.5, 136);
     public static AutoPose shootFar   = new AutoPose(55, 14, 160);
 
     // Optional (nicht in alten Config aktiv genutzt)
-    public static AutoPose shootClosePark = new AutoPose(0, 0, 0);
+    public static AutoPose shootClosePark = new AutoPose(-25, 11.5, 130);
     public static AutoPose parkFar        = new AutoPose(0, 0, 0);
 
     // Gate (aus gate[0])

@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.util.InterpLUT;
 import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -111,11 +112,11 @@ public class Shooter {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
 
         hood = hardwareMap.get(Servo.class, "hood");
-        feeder = hardwareMap.get(Servo.class, "feeder_servo");
+        feeder = hardwareMap.get(Servo.class, "feeder");
 
 
-        shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        shooterRight.setDirection(DcMotorEx.Direction.REVERSE);
+        shooterLeft.setDirection(DcMotorEx.Direction.FORWARD);
+        shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
 
         shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

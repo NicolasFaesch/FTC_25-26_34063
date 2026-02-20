@@ -37,6 +37,7 @@ public class RobotAuto extends Robot {
         shooter.update(drivetrainAuto.getDistance(), true);
     }
 
+
     public Pose2D getCurrentLimelightPose() {
         if (isUsingLimelight()) {
             return limelight.getPose(

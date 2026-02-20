@@ -1,6 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.draw;
+//import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.draw;
+
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.EIGHTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.ELEVENTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.FIFTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.FIRST_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.FOURTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.NINTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.SECOND_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.SEVENTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.SIXTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.TENTH_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.THIRD_OBJECTIVE;
+import static org.firstinspires.ftc.teamcode.lib.AutoConfig.TWELVETH_OBJECTIVE;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -29,13 +42,20 @@ public class AutoAllPaths extends OpMode {
 
         autoManager = new AutoManagement(robotAuto, true);
 
-        autoManager.addObjective(AutoManagement.Objective.SHOOT_START);
-        autoManager.addObjective(AutoManagement.Objective.SPIKE_MARK_CLOSE);
-        autoManager.addObjective(AutoManagement.Objective.SHOOT);
-        autoManager.addObjective(AutoManagement.Objective.SPIKE_MARK_MIDDLE);
-        autoManager.addObjective(AutoManagement.Objective.SHOOT);
-        autoManager.addObjective(AutoManagement.Objective.GATE_RELEASING);
-        autoManager.addObjective(AutoManagement.Objective.PARK);
+        if(FIRST_OBJECTIVE != null) autoManager.addObjective(FIRST_OBJECTIVE);
+        if(SECOND_OBJECTIVE != null) autoManager.addObjective(SECOND_OBJECTIVE);
+        if(THIRD_OBJECTIVE != null) autoManager.addObjective(THIRD_OBJECTIVE);
+        if(FOURTH_OBJECTIVE != null) autoManager.addObjective(FOURTH_OBJECTIVE);
+        if(FIFTH_OBJECTIVE != null) autoManager.addObjective(FIFTH_OBJECTIVE);
+        if(SIXTH_OBJECTIVE != null) autoManager.addObjective(SIXTH_OBJECTIVE);
+        if(SEVENTH_OBJECTIVE != null) autoManager.addObjective(SEVENTH_OBJECTIVE);
+        if(EIGHTH_OBJECTIVE != null) autoManager.addObjective(EIGHTH_OBJECTIVE);
+        if(NINTH_OBJECTIVE != null) autoManager.addObjective(NINTH_OBJECTIVE);
+        if(TENTH_OBJECTIVE != null) autoManager.addObjective(TENTH_OBJECTIVE);
+        if(ELEVENTH_OBJECTIVE != null) autoManager.addObjective(ELEVENTH_OBJECTIVE);
+        if(TWELVETH_OBJECTIVE != null) autoManager.addObjective(TWELVETH_OBJECTIVE);
+
+
 
         telemetry.addLine("Ready for start");
         telemetry.update();
@@ -61,6 +81,6 @@ public class AutoAllPaths extends OpMode {
 
             // Telemetrie aktualisieren
             autoManager.updateTelemetry();
-            draw();
+            //draw();
     }
 }

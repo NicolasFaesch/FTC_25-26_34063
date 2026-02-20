@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -24,9 +25,15 @@ public class DrivetrainAuto extends Drivetrain {
         follower.followPath(path);
     }
 
+    public void setFollowerMaxPower(double maxPower) {
+        follower.setMaxPower(maxPower);
+    }
+
     public void followPathAndHold(Path path) {follower.followPath(path, true);}
 
     public void followPathChain(PathChain pathChain) {follower.followPath(pathChain);}
 
     public void followPathChainAndHold(PathChain pathChain) {follower.followPath(pathChain, true);}
+
+    public Follower getFollower() {return follower;}
 }
