@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.arcrobotics.ftclib.util.Timing;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,36 +14,37 @@ import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 
 import java.util.concurrent.TimeUnit;
 
+@Configurable
 public class Shooter {
 
 
 
     // Feeder Timings (in milliseconds)
-    private static final long FEEDER_TRAVEL_TIME_UP = 120; // time for the feeder servo to move up or down
-    private static final long FEEDER_TRAVEL_TIME_DOWN = 100; // time for the feeder servo to move up or down
-    private static final long FEEDER_IDLE_TIME = 200; // time the feeder has to wait for ball to come into position
+    public static long FEEDER_TRAVEL_TIME_UP = 120; // time for the feeder servo to move up or down
+    public static long FEEDER_TRAVEL_TIME_DOWN = 100; // time for the feeder servo to move up or down
+    public static long FEEDER_IDLE_TIME = 200; // time the feeder has to wait for ball to come into position
 
     // Feeder Positions
-    private static final double FEEDER_RETRACTED = 0.825; // 0.95
-    private static final double FEEDER_EXTENDED = 0.6;
+    public static double FEEDER_RETRACTED = 0.825; // 0.95
+    public static double FEEDER_EXTENDED = 0.6;
 
     // Hood Positions (for manual mode)
-    private static final double HOOD_MIN_POSITION = 0.1;
-    private static final double HOOD_MAX_POSITION = 0.975;
-    private static final double HOOD_STEP_SIZE = 0.025;
+    public static double HOOD_MIN_POSITION = 0.1;
+    public static double HOOD_MAX_POSITION = 0.975;
+    public static double HOOD_STEP_SIZE = 0.025;
 
     // Shooter Velocity Params (in RPM)
-    private static final double SHOOTER_MIN_VELOCITY = 2500; // for manual override
-    private static final double SHOOTER_MAX_VELOCITY = 6000; // for manual override
-    private static final double SHOOTER_STEP_SIZE = 100; // for manual override
-    private static final double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough too shoot
-    private static final double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
+    public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
+    public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
+    public static double SHOOTER_STEP_SIZE = 100; // for manual override
+    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough too shoot
+    public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
-    private static final double SHOOTER_KP = 80.0;
-    private static final double SHOOTER_KI = 0.0;
-    private static final double SHOOTER_KD = 30.0;
-    private static final double SHOOTER_KV = 12.0;
+    public static double SHOOTER_KP = 80.0;
+    public static double SHOOTER_KI = 0.0;
+    public static double SHOOTER_KD = 30.0;
+    public static double SHOOTER_KV = 12.0;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution
@@ -115,7 +117,7 @@ public class Shooter {
         feeder = hardwareMap.get(Servo.class, "feeder");
 
 
-        shooterLeft.setDirection(DcMotorEx.Direction.FORWARD);
+        shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
         shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
 
         shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

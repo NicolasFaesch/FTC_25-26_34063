@@ -64,6 +64,9 @@ public class DrivetrainTeleOp extends Drivetrain{
         if(headingError >= 180.0) {
             headingError -= 360;
         }
+        if(headingError <= -180.0) {
+            headingError += 360;
+        }
         return headingError;
     }
 

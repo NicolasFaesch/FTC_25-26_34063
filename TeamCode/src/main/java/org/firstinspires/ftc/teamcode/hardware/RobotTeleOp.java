@@ -1,16 +1,25 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
+import static org.firstinspires.ftc.teamcode.lib.Drawing.drawRobot;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.Controller;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 import org.firstinspires.ftc.teamcode.lib.PositionChecker;
 import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
+
+import java.util.Locale;
 
 
 public class RobotTeleOp extends Robot{
@@ -21,6 +30,7 @@ public class RobotTeleOp extends Robot{
 
     private Controller controller1, controller2;
 
+    double previousTime = 0;
 
 
     public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance, Pose2D startPose, Gamepad gamepad1, Gamepad gamepad2) {
@@ -32,7 +42,10 @@ public class RobotTeleOp extends Robot{
         controller2 = new Controller(gamepad2);
     }
 
-    public void update(double loopTime) throws Exception {
+    public void update(double currentTime) throws Exception {
+        double loopTime = currentTime-previousTime;
+        previousTime = currentTime;
+
         drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
                 controller1.getRightJoystickXValue(), loopTime);
         super.update(drivetrainTeleOp.getPose());
@@ -53,17 +66,25 @@ public class RobotTeleOp extends Robot{
 
 
         boolean validShootingPose = drivetrainTeleOp.getDistance() >= ShooterLUT.minDistance;
-        validShootingPose &= PositionChecker.checkInZones(drivetrainTeleOp.getPose());
+        validShootingPose = PositionChecker.checkInZones(drivetrainTeleOp.getPose());
+        boolean validShootingState = Math.abs(drivetrainTeleOp.getHeadingError()) <= AIMING_MAX_HEADING_ERROR;
 
-        if(validShootingPose) {
-            colorLED.setColor(ColorLED.Color.GREEN);
-        } else {
-            colorLED.setColor(ColorLED.Color.RED);
+        switch (state) {
+            case AIMING:
+            case SHOOTING:
+                if(!validShootingPose) {
+                    colorLED.setColor(ColorLED.Color.RED);
+                } else if (!validShootingState) {
+                    colorLED.setColor(ColorLED.Color.ORANGE);
+                } else {
+                    colorLED.setColor((state == State.AIMING) ? ColorLED.Color.GREEN : ColorLED.Color.PURPLE);
+                }
+                break;
+            default:
+                colorLED.setColor(ColorLED.Color.OFF);
         }
 
-        validShootingPose &= Math.abs(drivetrainTeleOp.getHeadingError()) <= AIMING_MAX_HEADING_ERROR;
-
-        shooter.update(drivetrainTeleOp.getDistance(), validShootingPose);
+        shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState);
 
         if (controller1.getyButton() == Controller.ButtonState.ON_PRESS) {
             setState(State.IDLE);
@@ -119,10 +140,77 @@ public class RobotTeleOp extends Robot{
         if (controller2.getaButton() == Controller.ButtonState.ON_PRESS) {
             shooter.setManualOverride(!shooter.getManualOverride());
         }
-
     }
 
 
+    public void updateTelemetry(TelemetryManager panelsTelemetry, Telemetry telemetry) {
+        // Position
+        Pose2D botPose = drivetrainTeleOp.getPose();
+        String position = String.format(Locale.US, "X: %.2f, Y: %.2f, H: %.1f",
+                botPose.getX(DistanceUnit.INCH),
+                botPose.getY(DistanceUnit.INCH),
+                botPose.getHeading(AngleUnit.DEGREES));
+
+
+        // Robot States
+        panelsTelemetry.addLine("=== ROBOT STATES ===");
+        panelsTelemetry.addData("Robot State", getState());
+        panelsTelemetry.addData("Intake State", intake.getState());
+        panelsTelemetry.addData("Transfer State", transfer.getState());
+        panelsTelemetry.addData("Shooter State", shooter.getState());
+
+        telemetry.addLine("=== ROBOT STATES ===");
+        telemetry.addData("Robot State", getState());
+        telemetry.addData("Intake State", intake.getState());
+        telemetry.addData("Transfer State", transfer.getState());
+        telemetry.addData("Shooter State", shooter.getState());
+
+        // Pose
+        panelsTelemetry.addLine("=== POSE ===");
+        if (!isUsingLimelight()) {
+            panelsTelemetry.addData("Odometry", position);
+        } else {
+            panelsTelemetry.addData("Limelight", position);
+        }
+        panelsTelemetry.addData("Distance", drivetrainTeleOp.getDistance());
+
+        telemetry.addLine("=== POSE ===");
+        if (!isUsingLimelight()) {
+            telemetry.addData("Odometry", position);
+        } else {
+            telemetry.addData("Limelight", position);
+        }
+        telemetry.addData("Distance", drivetrainTeleOp.getDistance());
+
+        // Shooter Info
+        panelsTelemetry.addLine("=== SHOOTER ===");
+        if (shooter.getManualOverride()) {
+            panelsTelemetry.addLine("Shooter: MANUAL OVERRIDE");
+            panelsTelemetry.addData("Hood Position (manual)", shooter.getHoodPositionManual());
+            panelsTelemetry.addData("Target Velocity (manual)", shooter.getShooterTargetVelocityManual());
+        } else {
+            panelsTelemetry.addData("Hood Position", shooter.getHoodPosition());
+            panelsTelemetry.addData("Target Velocity", shooter.getShooterTargetVelocity());
+        }
+        panelsTelemetry.addData("Current Velocity", shooter.getShooterVelocity());
+
+        telemetry.addLine("=== SHOOTER ===");
+        if (shooter.getManualOverride()) {
+            telemetry.addLine("Shooter: MANUAL OVERRIDE");
+            telemetry.addData("Hood Position (manual)", shooter.getHoodPositionManual());
+            telemetry.addData("Target Velocity (manual)", shooter.getShooterTargetVelocityManual());
+        } else {
+            telemetry.addData("Hood Position", shooter.getHoodPosition());
+            telemetry.addData("Target Velocity", shooter.getShooterTargetVelocity());
+        }
+        telemetry.addData("Current Velocity", shooter.getShooterVelocity());
+
+        // Update PanelsTelemetry
+        //drawPath();
+        drawDebug(drivetrainTeleOp.getFollower());
+        panelsTelemetry.update();
+        telemetry.update();
+    }
 
 
 

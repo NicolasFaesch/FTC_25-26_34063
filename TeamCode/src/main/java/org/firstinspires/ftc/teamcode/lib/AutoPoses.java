@@ -24,12 +24,12 @@ public class AutoPoses {
         public AutoPose(double x, double y, double h) {
             this.x = x;
             this.y = y;
-            this.h = Math.toRadians(h);
+            this.h = h;
         }
 
         public Pose getPose() {
-            if (alliance == Alliance.RED) return new Pose(x, y, h);
-            else return new Pose(x, -y, -h);
+            if (alliance == Alliance.RED) return new Pose(x, y, Math.toRadians(h));
+            else return new Pose(x, -y, -Math.toRadians(h));
         }
     }
 

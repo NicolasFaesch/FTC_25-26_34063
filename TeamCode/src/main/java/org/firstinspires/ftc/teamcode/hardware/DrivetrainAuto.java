@@ -34,6 +34,4 @@ public class DrivetrainAuto extends Drivetrain {
     public void followPathChain(PathChain pathChain) {follower.followPath(pathChain);}
 
     public void followPathChainAndHold(PathChain pathChain) {follower.followPath(pathChain, true);}
-
-    public Follower getFollower() {return follower;}
 }

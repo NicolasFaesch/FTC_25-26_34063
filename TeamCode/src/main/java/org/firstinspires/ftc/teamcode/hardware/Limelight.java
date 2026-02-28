@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.arcrobotics.ftclib.util.Timing;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -9,11 +11,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import java.util.concurrent.TimeUnit;
+
+@Configurable
 public class Limelight {
-    private static final double LINEAR_VELOCITY_THRESHOLD = 0.05;
-    private static final double ANGULAR_VELOCITY_THRESHOLD = 5.0;
+    public static double LINEAR_VELOCITY_THRESHOLD = 0.05;
+    public static double ANGULAR_VELOCITY_THRESHOLD = 5.0;
+
+    public static double MAX_DISTANCE_MT1 = 2.0; //in meters
+
+    public static long UPDATE_PERIOD_MT1 = 300; //in milliseconds
+
     private Limelight3A limelight;
     private LLResult llresult;
+
+    private Timing.Timer timerMT1 = new Timing.Timer(UPDATE_PERIOD_MT1, TimeUnit.MILLISECONDS);
 
     public enum Pipeline {
         RED_GOAL,
@@ -26,6 +38,7 @@ public class Limelight {
 
         switchPipeline(pipeline);
         limelight.start();
+        timerMT1.start();
     }
 
     public void switchPipeline(Pipeline pipeline) {
@@ -35,7 +48,7 @@ public class Limelight {
                 pipelineNumber = 1;
                 break;
             case BLUE_GOAL:
-                pipelineNumber = 2;
+                pipelineNumber = 1; //TODO: change to other pipeline
                 break;
             case OBELISK:
                 pipelineNumber = 0;
@@ -79,7 +92,14 @@ public class Limelight {
         llresult = limelight.getLatestResult();
         if(llresult != null) {
             if(llresult.isValid()) {
-                Pose3D botpose3D = llresult.getBotpose_MT2();
+
+                Pose3D botpose3D;
+                if (llresult.getBotposeAvgDist() < MAX_DISTANCE_MT1 && timerMT1.done()) {
+                    botpose3D = new Pose3D(llresult.getBotpose_MT2().getPosition(), llresult.getBotpose().getOrientation());
+                    timerMT1.start();
+                } else {
+                    botpose3D = llresult.getBotpose_MT2();
+                }
                 return new Pose2D(DistanceUnit.METER, botpose3D.getPosition().x, botpose3D.getPosition().y,
                         AngleUnit.DEGREES, botpose3D.getOrientation().getYaw());
             }

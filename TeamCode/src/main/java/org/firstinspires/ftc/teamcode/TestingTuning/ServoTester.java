@@ -1,10 +1,8 @@
-package org.firstinspires.ftc.teamcode.hardware;
+package org.firstinspires.ftc.teamcode.TestingTuning;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import java.util.jar.Attributes;
 
 @TeleOp(name = "Servo tester", group = "Test")
 public class ServoTester extends OpMode {

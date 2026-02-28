@@ -4,7 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.Sorter;
 
 @Configurable
-public class AutoConfig {
+public class AutoConfigFar {
     @Sorter(sort=0)
     public static AutoManagement.Objective FIRST_OBJECTIVE = AutoManagement.Objective.SHOOT_START;
     @Sorter(sort=1)
@@ -24,11 +24,11 @@ public class AutoConfig {
     @Sorter(sort=8)
     public static AutoManagement.Objective NINTH_OBJECTIVE = AutoManagement.Objective.PARK;
     @Sorter(sort=9)
-    public static AutoManagement.Objective TENTH_OBJECTIVE = null;
+    public static AutoManagement.Objective TENTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=10)
-    public static AutoManagement.Objective ELEVENTH_OBJECTIVE = null;
+    public static AutoManagement.Objective ELEVENTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=11)
-    public static AutoManagement.Objective TWELVETH_OBJECTIVE = null;
+    public static AutoManagement.Objective TWELVETH_OBJECTIVE = AutoManagement.Objective.NONE;
 
 
 

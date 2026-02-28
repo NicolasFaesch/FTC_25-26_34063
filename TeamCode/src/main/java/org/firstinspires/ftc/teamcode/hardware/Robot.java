@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -27,7 +29,7 @@ public class Robot {
         STORING
     }
 
-    protected State state;
+    protected State state = null;
 
     private boolean usingLimelight = false;
 
@@ -40,7 +42,7 @@ public class Robot {
         shooter = new Shooter(hardwareMap, Shooter.ShooterMotorIdlingState.OFF);
         colorLED = new ColorLED(hardwareMap);
 
-        state = State.IDLE;
+        setState(State.IDLE);
 
     }
 
@@ -62,7 +64,9 @@ public class Robot {
         // Update limelight
         limelight.update(currentPose.getHeading(AngleUnit.DEGREES));
 
+
     }
+
 
     public void setState(State state) {
         if(state != this.state) {
@@ -114,7 +118,7 @@ public class Robot {
         Pose2D limelightPose;
         if(!useMT2) { // use MT1 for calib
             limelightPose = limelight.getPose(xVelocity, yVelocity, headingVelocity);
-        } else { // otherwise MT2
+        } else { // otherwise MT2 with occasional MT1 updates when close
             limelightPose = limelight.getPoseMT2(xVelocity, yVelocity, headingVelocity);
         }
         usingLimelight = (limelightPose != null);

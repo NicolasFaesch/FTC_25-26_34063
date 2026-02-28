@@ -13,9 +13,11 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.paths.Path;
 import com.pedropathing.util.Timer;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.hardware.ColorLED;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotAuto;
 
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class AutoManagement {
 
     // Feld zum Zeichnen
-    private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+    //private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private final FieldManager panelsField;
 
 
@@ -44,7 +46,8 @@ public class AutoManagement {
         LOADING_ZONE,
         SHOOT,
         SHOOT_END,
-        PARK
+        PARK,
+        NONE
     }
 
     public enum Task {
@@ -216,6 +219,8 @@ public class AutoManagement {
                 //if (!autoClose || previousObjective != Objective.SHOOT) taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
+            case NONE:
+                break;
         }
     }
 
@@ -239,23 +244,28 @@ public class AutoManagement {
         switch (currentTask) {
 
             case DRIVE_TO_INTAKE:
+                robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
                 robotAuto.setState(Robot.State.IDLE);
                 executeCurrentPath();
                 break;
             case DRIVE:
             case DRIVE_TO_SHOOT:
+                robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
                 robotAuto.setState(Robot.State.STORING);
                 executeCurrentPath();
                 break;
             case INTAKING:
+                robotAuto.colorLED.setColor(ColorLED.Color.PURPLE);
                 robotAuto.setState(Robot.State.INTAKING);
                 executeCurrentPath();
                 break;
             case SHOOTING:
+                robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
                 robotAuto.resetShots();
                 robotAuto.setState(Robot.State.SHOOTING);
                 break;
             case WAITING:
+                robotAuto.colorLED.setColor(ColorLED.Color.ORANGE);
                 if(currentObjective == Objective.GATE_RELEASING) {
                     gateReleasingTimer.start();
                 } else if (currentObjective == Objective.GATE_INTAKING) {
@@ -291,7 +301,7 @@ public class AutoManagement {
                 }
 
             }else {
-                panelsTelemetry.addLine("No path found");
+                //panelsTelemetry.addLine("No path found");
                 throw new IllegalArgumentException("Path not defined");
             }
         }
@@ -491,51 +501,19 @@ public class AutoManagement {
         //pathMap.put(new Key(Objective.SHOOTING_START, Task.SHOOTING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), AutoPaths.startCloseToShootCloseParked);
     }
 
-    public void updateTelemetry() {
-        // Position
-        Pose2D botPose = robotAuto.drivetrainAuto.getPose();
-        String position = String.format(Locale.US, "X: %.2f, Y: %.2f, H: %.1f",
-                botPose.getX(DistanceUnit.INCH),
-                botPose.getY(DistanceUnit.INCH),
-                botPose.getHeading(AngleUnit.DEGREES));
-
+    public void updateTelemetry(TelemetryManager panelsTelemetry, Telemetry telemetry) {
         // Task / Objective
         panelsTelemetry.addLine("=== Task ===");
         panelsTelemetry.addData("current Objective", currentObjective);
         panelsTelemetry.addData("currentTask", currentTask);
         if (previousObjective != null) panelsTelemetry.addData("previousObjective", previousObjective);
 
-        // Robot States
-        panelsTelemetry.addLine("=== ROBOT STATES ===");
-        panelsTelemetry.addData("Robot State", robotAuto.getState());
-        panelsTelemetry.addData("Intake State", robotAuto.intake.getState());
-        panelsTelemetry.addData("Transfer State", robotAuto.transfer.getState());
-        panelsTelemetry.addData("Shooter State", robotAuto.shooter.getState());
+        telemetry.addLine("=== Task ===");
+        telemetry.addData("current Objective", currentObjective);
+        telemetry.addData("currentTask", currentTask);
+        if (previousObjective != null) telemetry.addData("previousObjective", previousObjective);
 
-        // Pose
-        panelsTelemetry.addLine("=== POSE ===");
-        if (!robotAuto.isUsingLimelight()) {
-            panelsTelemetry.addData("Odometry", position);
-        } else {
-            panelsTelemetry.addData("Limelight", position);
-        }
-        panelsTelemetry.addData("Distance", robotAuto.drivetrainAuto.getDistance());
 
-        // Shooter Info
-        panelsTelemetry.addLine("=== SHOOTER ===");
-        if (robotAuto.shooter.getManualOverride()) {
-            panelsTelemetry.addLine("Shooter: MANUAL OVERRIDE");
-            panelsTelemetry.addData("Hood Position (manual)", robotAuto.shooter.getHoodPositionManual());
-            panelsTelemetry.addData("Target Velocity (manual)", robotAuto.shooter.getShooterTargetVelocityManual());
-        } else {
-            panelsTelemetry.addData("Hood Position", robotAuto.shooter.getHoodPosition());
-            panelsTelemetry.addData("Target Velocity", robotAuto.shooter.getShooterTargetVelocity());
-        }
-        panelsTelemetry.addData("Current Velocity", robotAuto.shooter.getShooterVelocity());
-
-        // Update PanelsTelemetry
-        //drawPath();
-        drawDebug(robotAuto.drivetrainAuto.getFollower());
-        panelsTelemetry.update();
+        robotAuto.updateTelemetry(panelsTelemetry, telemetry);
     }
 }
