@@ -12,11 +12,18 @@ public class DrivetrainTeleOp extends Drivetrain{
     private static final double STRAFE_SCALING = 1.0;
     private static final double TURN_SCALING = 1.0;
 
+
+    private static final double FORWARD_SCALING_SLOW = 0.3;
+    private static final double STRAFE_SCALING_SLOW = 0.3;
+    private static final double TURN_SCALING_SLOW = 0.3;
+
     // auto-aim PID gains
     private static final double AUTO_AIM_KP = 0.025;
     private static final double AUTO_AIM_KD = 0.0005;
 
     private boolean aimingMode;
+
+    private boolean slowMode;
 
     private double previousHeadingError = 0;
 
@@ -25,12 +32,21 @@ public class DrivetrainTeleOp extends Drivetrain{
         follower.startTeleOpDrive(false);
 
         aimingMode = false;
+        slowMode = false;
     }
 
     public void update(double leftStickX, double leftStickY, double rightStickX, double loopTime) {
-        double forward = -leftStickY*FORWARD_SCALING;
-        double strafe = -leftStickX*STRAFE_SCALING;
-        double turn = -rightStickX*TURN_SCALING;
+        //Normal case:
+        double forward = -leftStickY * FORWARD_SCALING;
+        double strafe = -leftStickX * STRAFE_SCALING;
+        double turn = -rightStickX * TURN_SCALING;
+
+        //Overrides if slowMode is enabled.
+        if(slowMode) {
+            forward = -leftStickY * FORWARD_SCALING_SLOW;
+            strafe = -leftStickX * STRAFE_SCALING_SLOW;
+            turn = -rightStickX * TURN_SCALING_SLOW;
+        }
 
         if(aimingMode) {
             double headingError = getHeadingError();
@@ -45,6 +61,11 @@ public class DrivetrainTeleOp extends Drivetrain{
     public void setAimingMode(boolean aimingMode) {
         if(this.aimingMode != aimingMode) {
             this.aimingMode = aimingMode;
+        }
+
+        //Sets the normal  speed if aiming.
+        if(slowMode && this.aimingMode) {
+            slowMode = false;
         }
     }
 
@@ -68,6 +89,16 @@ public class DrivetrainTeleOp extends Drivetrain{
             headingError += 360;
         }
         return headingError;
+    }
+
+    public void slowDrivetrain() {
+        if(!aimingMode) {
+            slowMode = true;
+        }
+    }
+
+    public void normalDrivetrain() {
+        slowMode = false;
     }
 
 }

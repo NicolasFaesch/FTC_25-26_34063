@@ -46,6 +46,14 @@ public class RobotTeleOp extends Robot{
         double loopTime = currentTime-previousTime;
         previousTime = currentTime;
 
+        //Slow driving speed while button hold.
+        if(controller1.getLeftTrigger() == Controller.ButtonState.PRESSED) {
+            drivetrainTeleOp.slowDrivetrain();
+        } else {
+            drivetrainTeleOp.normalDrivetrain();
+        }
+
+
         drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
                 controller1.getRightJoystickXValue(), loopTime);
         super.update(drivetrainTeleOp.getPose());
