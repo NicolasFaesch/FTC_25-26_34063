@@ -48,7 +48,7 @@ public class Limelight {
                 pipelineNumber = 1;
                 break;
             case BLUE_GOAL:
-                pipelineNumber = 1; //TODO: change to other pipeline
+                pipelineNumber = 2; //TODO: Check if pipeline is correct.
                 break;
             case OBELISK:
                 pipelineNumber = 0;

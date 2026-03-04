@@ -61,7 +61,7 @@ public class AutoPoses {
     public static AutoPose parkFar        = new AutoPose(0, 0, 0); // TODO: pose setzten
 
     // Gate (aus gate[0])
-    public static AutoPose gateReleasing = new AutoPose(0, 54, 90);
+    public static AutoPose gateReleasing = new AutoPose( 0, 54, 90);
 
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
 
