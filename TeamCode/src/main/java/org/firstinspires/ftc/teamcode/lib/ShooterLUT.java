@@ -28,10 +28,10 @@ public class ShooterLUT {
         shooterPositions.add(new double[]{2.4, 3400, 0.6});
         shooterPositions.add(new double[]{2.5, 3500, 0.65});
         shooterPositions.add(new double[]{2.6, 3500, 0.675});
-        shooterPositions.add(new double[]{2.7, 3600, 0.725});
-        shooterPositions.add(new double[]{3.7, 4200, 0.725});
-        shooterPositions.add(new double[]{3.8, 4200, 0.725});
-        shooterPositions.add(new double[]{3.9, 4200, 0.725});
+        shooterPositions.add(new double[]{2.7, 3600, 0.6375});
+        shooterPositions.add(new double[]{3.7, 4200, 0.6375});
+        shooterPositions.add(new double[]{3.8, 4200, 0.6375});
+        shooterPositions.add(new double[]{3.9, 4200, 0.6375});
     }
 
     public static double minDistance = shooterPositions.get(0)[0];

@@ -58,17 +58,24 @@ public class AutoPoses {
 
     // Optional (nicht in alten Config aktiv genutzt)
     public static AutoPose shootClosePark = new AutoPose(-25, 11.5, 130);
-    public static AutoPose parkFar        = new AutoPose(0, 0, 0);
+    public static AutoPose parkFar        = new AutoPose(0, 0, 0); // TODO: pose setzten
 
     // Gate (aus gate[0])
     public static AutoPose gateReleasing = new AutoPose(0, 54, 90);
 
-    // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(0, 0, 0);
-    public static AutoPose loadingZoneBefore = new AutoPose(0, 0, 0);
-    public static AutoPose loadingZoneAfter  = new AutoPose(0, 0, 0);
-
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
+
+    // Offen lassen wie gewünscht
+    public static AutoPose gateIntaking     = new AutoPose(0, 0, 0); // TODO: pose setzten
+    public static AutoPose gateIntakingControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten
+    public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten
+
+    public static AutoPose loadingZoneBefore = new AutoPose(0, 0, 0); // TODO: pose setzten
+    public static AutoPose loadingZoneAdditional1 = new AutoPose(0, 0, 0); // TODO: pose setzten
+    public static AutoPose loadingZoneAdditional2 = new AutoPose(0, 0, 0); // TODO: pose setzten
+    public static AutoPose loadingZoneAfter  = new AutoPose(0, 0, 0); // TODO: pose setzten
+
+
 
 
 
