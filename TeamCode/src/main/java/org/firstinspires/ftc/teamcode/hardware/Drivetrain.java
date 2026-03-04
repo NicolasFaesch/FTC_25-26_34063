@@ -18,6 +18,7 @@ public class Drivetrain {
     protected Follower follower;
 
     protected Pose targetPose;
+    protected Pose2D parkingPose;
 
     protected Drivetrain(HardwareMap hardwareMap, Pose2D startPose) {
         follower = Constants.createFollower(hardwareMap);
@@ -40,6 +41,8 @@ public class Drivetrain {
     public void setTargetPose(Pose2D targetPose) {
         this.targetPose = pose2DtoPose(targetPose);
     }
+
+    public void setParkingPose(Pose2D parkingPose) {this.parkingPose = parkingPose;}
 
     public double getDistance() {
         return inchToMeter(targetPose.distanceFrom(follower.getPose()));

@@ -26,7 +26,8 @@ public class Robot {
         OUTTAKING,
         SHOOTING,
         AIMING,
-        STORING
+        STORING,
+        PARKING
     }
 
     protected State state = null;
@@ -103,6 +104,12 @@ public class Robot {
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.SPINNING);
                     intake.setState(Intake.State.STORING);
                     transfer.setState(Transfer.State.FEEDING);
+                    shooter.setState(Shooter.State.IDLE);
+                    break;
+                case PARKING:
+                    shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.OFF);
+                    intake.setState(Intake.State.IDLE);
+                    transfer.setState(Transfer.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
                     break;
             }

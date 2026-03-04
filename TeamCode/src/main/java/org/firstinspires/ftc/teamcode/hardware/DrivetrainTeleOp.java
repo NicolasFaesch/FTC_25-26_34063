@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 public class DrivetrainTeleOp extends Drivetrain{
     private static final double FORWARD_SCALING = 1.0;
@@ -25,6 +26,8 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     private boolean slowMode;
 
+    private boolean parkingMode;
+
     private double previousHeadingError = 0;
 
     public DrivetrainTeleOp(HardwareMap hardwareMap, Pose2D startPose) {
@@ -33,29 +36,52 @@ public class DrivetrainTeleOp extends Drivetrain{
 
         aimingMode = false;
         slowMode = false;
+        parkingMode = false;
     }
 
     public void update(double leftStickX, double leftStickY, double rightStickX, double loopTime) {
-        //Normal case:
-        double forward = -leftStickY * FORWARD_SCALING;
-        double strafe = -leftStickX * STRAFE_SCALING;
-        double turn = -rightStickX * TURN_SCALING;
+        if(parkingMode) {
+            Pose2D botpose = getPose();
 
-        //Overrides if slowMode is enabled.
-        if(slowMode) {
-            forward = -leftStickY * FORWARD_SCALING_SLOW;
-            strafe = -leftStickX * STRAFE_SCALING_SLOW;
-            turn = -rightStickX * TURN_SCALING_SLOW;
-        }
+            //Gets the Heading Error (probably (not))
+            double headingError = PoseStorage.parkingHeading - botpose.getHeading(AngleUnit.DEGREES);
 
-        if(aimingMode) {
-            double headingError = getHeadingError();
-            turn = headingError * AUTO_AIM_KP + (headingError-previousHeadingError)/loopTime*AUTO_AIM_KD;
+            double turn = headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
             previousHeadingError = headingError;
-        }
 
-        follower.setTeleOpDrive(forward,strafe,turn);
-        super.update();
+            //Calculations based on ChatGPT.
+            double dx = parkingPose.getX(DistanceUnit.METER) + PoseStorage.parkingCorrectionX - botpose.getX(DistanceUnit.METER);
+            double dy = parkingPose.getY(DistanceUnit.METER) + PoseStorage.parkingCorrectionY - botpose.getY(DistanceUnit.METER);
+
+            double heading = botpose.getHeading(AngleUnit.RADIANS); //Radians based on ChatGPT
+
+            double forward =  dx * Math.cos(heading) + dy * Math.sin(heading);
+            double strafe  = -dx * Math.sin(heading) + dy * Math.cos(heading);
+
+            follower.setTeleOpDrive(forward, strafe, turn);
+            super.update();
+        } else {
+            //Normal case:
+            double forward = -leftStickY * FORWARD_SCALING;
+            double strafe = -leftStickX * STRAFE_SCALING;
+            double turn = -rightStickX * TURN_SCALING;
+
+            //Overrides if slowMode is enabled.
+            if (slowMode) {
+                forward = -leftStickY * FORWARD_SCALING_SLOW;
+                strafe = -leftStickX * STRAFE_SCALING_SLOW;
+                turn = -rightStickX * TURN_SCALING_SLOW;
+            }
+
+            if (aimingMode) {
+                double headingError = getHeadingError();
+                turn = headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
+                previousHeadingError = headingError;
+            }
+
+            follower.setTeleOpDrive(forward, strafe, turn);
+            super.update();
+        }
     }
 
     public void setAimingMode(boolean aimingMode) {
@@ -99,6 +125,14 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     public void normalDrivetrain() {
         slowMode = false;
+    }
+
+    public void park() {
+        parkingMode = true;
+    }
+
+    public void noParking() {
+        parkingMode = false;
     }
 
 }

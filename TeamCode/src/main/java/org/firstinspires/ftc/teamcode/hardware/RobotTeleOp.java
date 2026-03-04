@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad2;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawRobot;
@@ -38,6 +39,13 @@ public class RobotTeleOp extends Robot{
         drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap,startPose);
         drivetrainTeleOp.setTargetPose((alliance==Alliance.RED) ? PoseStorage.targetPoseRed :PoseStorage.targetPoseBlue);
 
+        if(alliance == Alliance.RED) {
+            drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseRED);
+        } else {
+            drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseBLUE);
+        }
+
+
         controller1 = new Controller(gamepad1);
         controller2 = new Controller(gamepad2);
     }
@@ -52,6 +60,28 @@ public class RobotTeleOp extends Robot{
         } else {
             drivetrainTeleOp.normalDrivetrain();
         }
+
+        if(controller1.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
+            setState(State.PARKING);
+            drivetrainTeleOp.park();
+        }
+
+        if(getState() != State.PARKING) {
+            drivetrainTeleOp.noParking();
+        }
+
+        //Gamepad 2 adjusting parkingPoses: Probably wrong directions (change *-1)
+        if(controller2.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
+            PoseStorage.parkingCorrectionX += 0.03;
+        } else if(controller2.getdPadRight() == Controller.ButtonState.ON_PRESS) {
+            PoseStorage.parkingCorrectionX -= 0.03;
+        } else if(controller2.getdPadUp() == Controller.ButtonState.ON_PRESS) {
+            PoseStorage.parkingCorrectionY += 0.03;
+        } else if(controller2.getdPadDown() == Controller.ButtonState.ON_PRESS) {
+            PoseStorage.parkingCorrectionY -= 0.03;
+        }
+
+
 
 
         drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
