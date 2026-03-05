@@ -6,8 +6,10 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotTeleOp;
+import org.firstinspires.ftc.teamcode.lib.PoseFile;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 @TeleOp(name = "TeleOp RED", group = "comp")
@@ -19,8 +21,18 @@ public class TeleOpRed extends OpMode {
 
     @Override
     public void init() {
-        robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED, PoseStorage.currentPose
-        , gamepad1, gamepad2);
+        Pose2D savedPose = PoseFile.readPose();
+
+        if(savedPose == null)
+            savedPose = PoseStorage.currentPose;
+
+        robotTeleOp = new RobotTeleOp(
+                hardwareMap,
+                Robot.Alliance.RED,
+                savedPose,
+                gamepad1,
+                gamepad2
+        );
     }
 
     @Override

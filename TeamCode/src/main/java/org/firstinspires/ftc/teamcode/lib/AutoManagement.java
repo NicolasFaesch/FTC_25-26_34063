@@ -389,6 +389,8 @@ public class AutoManagement {
 
         robotAuto.drivetrainAuto.update();
 
+        PoseFile.writePose(robotAuto.drivetrainAuto.getPose());
+
         if (currentTask == null)
             return;
 
@@ -624,6 +626,9 @@ public class AutoManagement {
         telemetry.addData("currentTask", currentTask);
         if (previousObjective != null) telemetry.addData("previousObjective", previousObjective);
 
+        Pose2D savedPose = PoseFile.readPose();
+
+        telemetry.addData("Loaded Pose", savedPose);
 
         robotAuto.updateTelemetry(panelsTelemetry, telemetry);
     }
