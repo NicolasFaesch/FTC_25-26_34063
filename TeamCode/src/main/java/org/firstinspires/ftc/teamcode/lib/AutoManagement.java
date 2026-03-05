@@ -213,7 +213,8 @@ public class AutoManagement {
                 taskList.add(Task.SHOOTING);
                 break;
             case SHOOT_START:
-                if (!autoClose) taskList.add(Task.DRIVE_TO_SHOOT);
+                //if (!autoClose) taskList.add(Task.DRIVE_TO_SHOOT);
+                taskList.add(Task.DRIVE_TO_SHOOT);
                 taskList.add(Task.SHOOTING);
                 break;
             case PARK:
@@ -440,6 +441,16 @@ public class AutoManagement {
     private void buildPathMap() {
         // Key-Format: (previousObjective, currentTask, currentObjective, autoClose)
 
+        pathMap.put(new Key(null, Task.DRIVE_TO_SHOOT, Objective.SHOOT_START, true),
+                List.of(AutoPaths.startCloseToShootClose));
+
+        pathMap.put(new Key(null, Task.DRIVE_TO_SHOOT, Objective.SHOOT_START, false),
+                List.of(AutoPaths.startFarToShootFar));
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_SHOOT, Objective.SHOOT, true),
+                List.of(AutoPaths.startCloseToShootClose));
+
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_SHOOT, Objective.SHOOT, false),
+                List.of(AutoPaths.startFarToShootFar));
         // =====================================================
         // 1. DRIVE_TO_INTAKE (Start -> Ziel)
         // =====================================================

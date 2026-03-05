@@ -39,8 +39,8 @@ public class AutoPoses {
     // RED Alliance
 
     // Start
-    public static AutoPose startPoseClose = new AutoPose(-70, 11, 90);
-    public static AutoPose startPoseFar   = new AutoPose(65, 7, 90);
+    public static AutoPose startPoseClose = new AutoPose(-49, 48, 129);
+    public static AutoPose startPoseFar   = new AutoPose(68, 19, -180);
 
     // Intake BEFORE (xBefore, yBefore, h)
     public static AutoPose intakingCloseBefore  = new AutoPose(-14, 27, 90);
@@ -54,7 +54,7 @@ public class AutoPoses {
 
     // Shooting
     public static AutoPose shootClose = new AutoPose(-19, 22.5, 136);
-    public static AutoPose shootFar   = new AutoPose(55, 14, 160);
+    public static AutoPose shootFar   = new AutoPose(53, 5, 154);
 
     // Optional (nicht in alten Config aktiv genutzt)
     public static AutoPose shootClosePark = new AutoPose(-25, 11.5, 130);
@@ -62,22 +62,23 @@ public class AutoPoses {
 
     // Gate (aus gate[0])
     public static AutoPose gateReleasing = new AutoPose( 0, 54, 90);
-
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(12, 58, 124); // TODO: pose setzten evt richtig
+    public static AutoPose gateIntaking     = new AutoPose(11, 58, 124); // TODO: pose setzten evt richtig
     public static AutoPose gateIntakingControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten evt richtig
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten evt richtig
 
-    public static AutoPose loadingZoneBefore = new AutoPose(115, 16, 90); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAdditional1 = new AutoPose(135, 14, 90); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAdditional2 = new AutoPose(126, 8, 90); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAfter  = new AutoPose(135, 8, 90); // TODO: pose setzten naja
+    /*
+    // Mit 4 Wegen
+    public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAdditional1 = new AutoPose(62, 57, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAdditional2 = new AutoPose(52, 31, 90); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAfter  = new AutoPose(53, 57, 90); // TODO: pose setzten naja
+*/
 
-
-
-
+    public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAfter  = new AutoPose(62, 57, 80); // TODO: pose setzten naja
 
 
 }

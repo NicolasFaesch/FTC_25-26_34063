@@ -38,9 +38,13 @@ public class RobotAuto extends Robot {
                 true
         );
 
+    //unit of limeLightPose
+
          if (limelightPose != null) {
              drivetrainAuto.overridePose(limelightPose);
          }
+
+//unit of drivetrainAuto.getPose()
 
         super.update(drivetrainAuto.getPose());
         shooter.update(drivetrainAuto.getDistance(), true);
