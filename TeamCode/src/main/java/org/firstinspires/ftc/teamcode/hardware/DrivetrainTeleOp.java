@@ -33,6 +33,14 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     private double previousHeadingError = 0;
 
+
+    public enum goalDistance {
+        CLOSE,
+        FAR
+    };
+
+    private goalDistance currentDistance;
+
     public DrivetrainTeleOp(HardwareMap hardwareMap, Pose2D startPose) {
         super(hardwareMap, startPose);
         follower.startTeleOpDrive(false);
@@ -85,6 +93,7 @@ public class DrivetrainTeleOp extends Drivetrain{
             follower.setTeleOpDrive(forward, strafe, turn);
             super.update();
         }
+
     }
 
     public void adjustAutoAimHeading(double adjustment) {

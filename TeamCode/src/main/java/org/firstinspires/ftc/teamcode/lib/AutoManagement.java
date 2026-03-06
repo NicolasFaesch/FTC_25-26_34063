@@ -355,6 +355,9 @@ public class AutoManagement {
                         nextTask(); // Task komplett fertig
                     }
                 }
+                if (robotAuto.drivetrainAuto.immobile()) {
+                    nextTask();
+                }
                 break;
             case SHOOTING:
                 if (robotAuto.getBallsShot() >= 3)

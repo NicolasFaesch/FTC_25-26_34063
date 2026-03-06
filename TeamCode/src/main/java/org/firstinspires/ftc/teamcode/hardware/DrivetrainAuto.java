@@ -12,13 +12,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.pedropathing.paths.Path;
 
 import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 public class DrivetrainAuto extends Drivetrain {
 
     private final double movementTol = 0.7; //in INCH^2
-    private Pose2D lastPose = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0);
+    private Pose2D lastPose = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
     private int static_count = 0;
-    private Timing.Timer timer;
+    //CHANGE BACK TO PRIVATE
+    public Timing.Timer timer = new Timing.Timer(9999999, TimeUnit.MILLISECONDS);
     private boolean isStoped = false;
 
     public DrivetrainAuto(HardwareMap hardwareMap, Pose2D startPose) {
@@ -28,8 +30,10 @@ public class DrivetrainAuto extends Drivetrain {
 
     public void update() {
         follower.update();
-        if(timer.elapsedTime() >= 0.5) {
+        //500 in MS
+        if(timer.elapsedTime() >= 500) {
             Pose2D currentPose = this.getPose();
+            //relies on early termination to protect from null values
             if (lastPose != null && Math.pow((currentPose.getX(DistanceUnit.INCH) - lastPose.getX(DistanceUnit.INCH)), 2)
                     + Math.pow((currentPose.getY(DistanceUnit.INCH) - lastPose.getY(DistanceUnit.INCH)),2)
                     < movementTol) {
@@ -62,7 +66,7 @@ public class DrivetrainAuto extends Drivetrain {
         follower.followPath(path, true);
     }
 
-    public boolean isStoped() {
+    public boolean immobile() {
         return isStoped;
     }
 

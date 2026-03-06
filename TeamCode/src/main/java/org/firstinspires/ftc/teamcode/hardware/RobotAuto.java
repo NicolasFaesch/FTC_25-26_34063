@@ -66,6 +66,10 @@ public class RobotAuto extends Robot {
         panelsTelemetry.addData("Transfer State", transfer.getState());
         panelsTelemetry.addData("Shooter State", shooter.getState());
 
+
+        //telemetry.addLine("=== DEBUG ===");
+        //telemetry.addData("immobile", drivetrainAuto.immobile());
+        //telemetry.addData("time_elapsed", drivetrainAuto.timer.elapsedTime());
         telemetry.addLine("=== ROBOT STATES ===");
         telemetry.addData("Robot State", getState());
         telemetry.addData("Intake State", intake.getState());
