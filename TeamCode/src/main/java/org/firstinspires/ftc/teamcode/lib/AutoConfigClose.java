@@ -18,9 +18,9 @@ public class AutoConfigClose {
     @Sorter(sort=5)
     public static AutoManagement.Objective SIXTH_OBJECTIVE = AutoManagement.Objective.SPIKE_MARK_FAR;
     @Sorter(sort=6)
-    public static AutoManagement.Objective SEVENTH_OBJECTIVE = AutoManagement.Objective.SHOOT;
+    public static AutoManagement.Objective SEVENTH_OBJECTIVE = AutoManagement.Objective.SHOOT_END;
     @Sorter(sort=7)
-    public static AutoManagement.Objective EIGHTH_OBJECTIVE = AutoManagement.Objective.PARK;
+    public static AutoManagement.Objective EIGHTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=8)
     public static AutoManagement.Objective NINTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=9)
