@@ -27,6 +27,9 @@ public class RobotTeleOp extends Robot{
 
     private static final double AIMING_MAX_HEADING_ERROR = 3;
 
+    //Possible adjustment per frame in radian.
+    private static final double autoAimHeadingAdjustment = 0.03;
+
     public DrivetrainTeleOp drivetrainTeleOp;
 
     private Controller controller1, controller2;
@@ -70,15 +73,33 @@ public class RobotTeleOp extends Robot{
             drivetrainTeleOp.noParking();
         }
 
-        //Gamepad 2 adjusting parkingPoses: Probably wrong directions (change *-1)
+        //Gamepad 2 adjusting
         if(controller2.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
-            PoseStorage.parkingCorrectionX += 0.03;
+            //shooter.adjustShooterSpeed(false);
+            //PoseStorage.parkingCorrectionX += 0.03;
         } else if(controller2.getdPadRight() == Controller.ButtonState.ON_PRESS) {
-            PoseStorage.parkingCorrectionX -= 0.03;
+            //shooter.adjustShooterSpeed(true);
+            //PoseStorage.parkingCorrectionX -= 0.03;
         } else if(controller2.getdPadUp() == Controller.ButtonState.ON_PRESS) {
-            PoseStorage.parkingCorrectionY += 0.03;
+            shooter.adjustHood(true);
+            //PoseStorage.parkingCorrectionY += 0.03;
         } else if(controller2.getdPadDown() == Controller.ButtonState.ON_PRESS) {
-            PoseStorage.parkingCorrectionY -= 0.03;
+            shooter.adjustHood(false);
+            //PoseStorage.parkingCorrectionY -= 0.03;
+        }
+
+        if(controller2.getLeftBumper() == Controller.ButtonState.ON_PRESS) {
+            drivetrainTeleOp.adjustAutoAimHeading(autoAimHeadingAdjustment);
+        } else if(controller2.getRightBumper() == Controller.ButtonState.ON_PRESS) {
+            drivetrainTeleOp.adjustAutoAimHeading((autoAimHeadingAdjustment*-1));
+        }
+
+
+        //Reset adjustment
+        if(controller2.getRightJoystickButton() == Controller.ButtonState.ON_PRESS || controller1.getRightJoystickButton() == Controller.ButtonState.ON_PRESS) {
+            shooter.resetShooterSpeedAdjustment();
+            shooter.resetHoodAdjustment();
+            drivetrainTeleOp.resetAutoAimHeadingAdjustment();
         }
 
 

@@ -54,20 +54,24 @@ public class AutoPoses {
 
     // Shooting
     public static AutoPose shootClose = new AutoPose(-19, 22.5, 136);
-    public static AutoPose shootFar   = new AutoPose(53, 5, 154);
+
+    public static AutoPose shootFar   = new AutoPose(59.3, 14.2, 157.4);
 
     // Optional (nicht in alten Config aktiv genutzt)
-    public static AutoPose shootClosePark = new AutoPose(-25, 11.5, 130);
-    public static AutoPose parkFar        = new AutoPose(97, 18, 45); // TODO: pose setzten naja
+    public static AutoPose shootClosePark = new AutoPose(-45, 19.2, 115.4);
+
+
+    public static AutoPose parkClose      = new AutoPose(-30, 20, 90); // TODO: pose setzten naja
+    public static AutoPose parkFar        = new AutoPose(40, 32.5, 90);
 
     // Gate (aus gate[0])
     public static AutoPose gateReleasing = new AutoPose( 0, 54, 90);
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(11, 58, 124); // TODO: pose setzten evt richtig
-    public static AutoPose gateIntakingControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten evt richtig
-    public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90); // TODO: pose setzten evt richtig
+    public static AutoPose gateIntaking     = new AutoPose(11, 58, 124);
+    public static AutoPose gateIntakingControlPoint = new AutoPose(0, 20, 90);
+    public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
 
     /*
     // Mit 4 Wegen

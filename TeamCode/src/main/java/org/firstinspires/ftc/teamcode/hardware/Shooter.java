@@ -109,6 +109,10 @@ public class Shooter {
     private int ballsShot;
 
 
+    private double hoodAdjustment = 0;
+    private double shooterSpeedAdjustment = 0;
+
+
     public Shooter(HardwareMap hardwareMap, ShooterMotorIdlingState initialshooterMotorIdlingState) {
         shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
@@ -161,8 +165,8 @@ public class Shooter {
 
     public void update(double distance, boolean validShootingPose) {
         shooterTargetVelocity = shooterVelocityLUT.get(distance);
-        hoodPosition = hoodLUT.get(distance);
-        shooterVelocity = toRPM((shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+        hoodPosition = hoodAdjustment + hoodLUT.get(distance);
+        shooterVelocity = toRPM(shooterSpeedAdjustment + (shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
 
         if(state == State.AIMING || state == State.SHOOTING) {
             boolean shooterToSpeed = false;
@@ -215,6 +219,32 @@ public class Shooter {
         }
 
     }
+
+    public void adjustHood(boolean hoodPlus) {
+        if(hoodPlus) {
+            hoodAdjustment += HOOD_STEP_SIZE;
+        } else {
+            hoodAdjustment -= HOOD_STEP_SIZE;
+        }
+    }
+
+    public void resetHoodAdjustment() {
+        hoodAdjustment = 0;
+    }
+
+
+    public void adjustShooterSpeed(boolean velocityPlus) {
+        if(velocityPlus) {
+            shooterSpeedAdjustment += SHOOTER_STEP_SIZE;
+        } else {
+            shooterSpeedAdjustment -= SHOOTER_STEP_SIZE;
+        }
+    }
+
+    public void resetShooterSpeedAdjustment() {
+        shooterSpeedAdjustment = 0;
+    }
+
 
     public void setState(State state) {
         if(state != this.state) {

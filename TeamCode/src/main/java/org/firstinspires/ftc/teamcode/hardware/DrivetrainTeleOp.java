@@ -28,6 +28,9 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     private boolean parkingMode;
 
+
+    private double manualAdjustment = 0;
+
     private double previousHeadingError = 0;
 
     public DrivetrainTeleOp(HardwareMap hardwareMap, Pose2D startPose) {
@@ -75,13 +78,20 @@ public class DrivetrainTeleOp extends Drivetrain{
 
             if (aimingMode) {
                 double headingError = getHeadingError();
-                turn = headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
+                turn = manualAdjustment + headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
                 previousHeadingError = headingError;
             }
 
             follower.setTeleOpDrive(forward, strafe, turn);
             super.update();
         }
+    }
+
+    public void adjustAutoAimHeading(double adjustment) {
+        manualAdjustment += adjustment;
+    }
+    public void resetAutoAimHeadingAdjustment() {
+        manualAdjustment = 0;
     }
 
     public void setAimingMode(boolean aimingMode) {

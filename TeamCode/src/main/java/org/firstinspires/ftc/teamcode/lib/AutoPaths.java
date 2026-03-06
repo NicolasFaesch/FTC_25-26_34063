@@ -19,6 +19,11 @@ public class AutoPaths {
     public static Path startCloseToGateReleasing;
     public static Path startCloseToLoadingZone;
 
+    // parked Close poses
+    public static Path startCloseToParkedClose;
+    public static Path shootCloseToParkedClose;
+    public static Path gateReleasingToParkedClose;
+
 
     // Start Far to other Poses
     public static Path startFarToIntakingClose;
@@ -217,6 +222,11 @@ public class AutoPaths {
         // Remaining Paths
         shootFarToParkedFar = createBezierLine(AutoPoses.shootFar, AutoPoses.parkFar);
         gateReleasingToParkedFar = createBezierLine(AutoPoses.gateReleasing, AutoPoses.parkFar);
+
+
+        startCloseToParkedClose = createBezierLine(AutoPoses.startPoseFar, AutoPoses.parkClose);
+        shootCloseToParkedClose = createBezierLine(AutoPoses.shootFar, AutoPoses.parkClose);
+        gateReleasingToParkedClose = createBezierLine(AutoPoses.gateReleasing, AutoPoses.parkClose);
     }
 
 

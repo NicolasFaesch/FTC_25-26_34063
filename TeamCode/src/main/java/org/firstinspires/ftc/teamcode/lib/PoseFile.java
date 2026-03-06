@@ -51,7 +51,7 @@ public class PoseFile {
             double y = Double.parseDouble(data[1]);
             double heading = Double.parseDouble(data[2]);
 
-            return new Pose2D(DistanceUnit.INCH, x, y, AngleUnit.DEGREES, heading);
+            return new Pose2D(DistanceUnit.INCH, x, y, AngleUnit.RADIANS, heading);
 
         } catch (Exception e) {
             e.printStackTrace();

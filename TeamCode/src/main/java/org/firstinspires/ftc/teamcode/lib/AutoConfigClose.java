@@ -16,13 +16,13 @@ public class AutoConfigClose {
     @Sorter(sort=4)
     public static AutoManagement.Objective FIFTH_OBJECTIVE = AutoManagement.Objective.SHOOT;
     @Sorter(sort=5)
-    public static AutoManagement.Objective SIXTH_OBJECTIVE = AutoManagement.Objective.GATE_RELEASING;
+    public static AutoManagement.Objective SIXTH_OBJECTIVE = AutoManagement.Objective.SPIKE_MARK_FAR;
     @Sorter(sort=6)
-    public static AutoManagement.Objective SEVENTH_OBJECTIVE = AutoManagement.Objective.SPIKE_MARK_FAR;
+    public static AutoManagement.Objective SEVENTH_OBJECTIVE = AutoManagement.Objective.SHOOT;
     @Sorter(sort=7)
-    public static AutoManagement.Objective EIGHTH_OBJECTIVE = AutoManagement.Objective.SHOOT_END;
+    public static AutoManagement.Objective EIGHTH_OBJECTIVE = AutoManagement.Objective.PARK;
     @Sorter(sort=8)
-    public static AutoManagement.Objective NINTH_OBJECTIVE = AutoManagement.Objective.PARK;
+    public static AutoManagement.Objective NINTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=9)
     public static AutoManagement.Objective TENTH_OBJECTIVE = AutoManagement.Objective.NONE;
     @Sorter(sort=10)

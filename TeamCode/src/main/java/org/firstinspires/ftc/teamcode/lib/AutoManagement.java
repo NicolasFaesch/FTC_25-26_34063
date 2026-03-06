@@ -218,7 +218,8 @@ public class AutoManagement {
                 taskList.add(Task.SHOOTING);
                 break;
             case PARK:
-                //if (!autoClose || previousObjective != Objective.SHOOT) taskList.add(Task.DRIVE);
+                //if (!autoClose)
+                taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
             case NONE:
@@ -318,68 +319,6 @@ public class AutoManagement {
                 break;
         }
     }
-    /*
-    private void executeCurrentPath() {
-        Key key = new Key(previousObjective, currentTask, currentObjective, autoClose);
-        Path path = pathMap.get(key);
-
-        if (true) { //!robotAuto.drivetrainAuto.isFollowerBusy()
-            if (path != null){
-
-                switch(currentTask) {
-                    case INTAKING:
-                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.INTAKING_DRIVE_SPEED);
-                        robotAuto.drivetrainAuto.followPath(path);
-                        break;
-                    case DRIVE_TO_SHOOT:
-                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
-                        robotAuto.drivetrainAuto.followPathAndHold(path);
-                        break;
-                    case WAITING:
-                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
-                        robotAuto.drivetrainAuto.followPathAndHold(path);
-                    default:
-                        robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
-                        robotAuto.drivetrainAuto.followPath(path);
-                        break;
-                }
-
-            }else {
-                //panelsTelemetry.addLine("No path found");
-                throw new IllegalArgumentException("Path not defined");
-            }
-        }
-    }
-
-    private void executeCurrentPath() {
-        Key key = new Key(previousObjective, currentTask, currentObjective, autoClose);
-        List<Path> paths = pathMap.get(key);
-
-        if (paths == null || paths.isEmpty()) {
-            throw new IllegalArgumentException("Path not defined for key: " + key);
-        }
-
-        Path path = paths.get(0);
-
-        switch (currentTask) {
-
-            case INTAKING:
-                robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.INTAKING_DRIVE_SPEED);
-                robotAuto.drivetrainAuto.followPath(path);
-                break;
-
-            case DRIVE_TO_SHOOT:
-            case WAITING:
-                robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
-                robotAuto.drivetrainAuto.followPathAndHold(path);
-                break;
-
-            default:
-                robotAuto.drivetrainAuto.setFollowerMaxPower(AutoConstants.REGULAR_DRIVE_SPEED);
-                robotAuto.drivetrainAuto.followPath(path);
-                break;
-        }
-    }*/
 
     // ----------------------------------------------------
     // UPDATE LOOP
@@ -593,6 +532,11 @@ public class AutoManagement {
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE, Objective.PARK, false), List.of(AutoPaths.gateReleasingToParkedFar));
         pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.PARK, false), List.of(AutoPaths.startFarToParkedFar));
         pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.PARK, false), List.of(AutoPaths.shootFarToParkedFar));
+
+        // Park Close
+        pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE, Objective.PARK, true), List.of(AutoPaths.gateReleasingToParkedClose));
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.PARK, true), List.of(AutoPaths.startCloseToParkedClose));
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.PARK, true), List.of(AutoPaths.shootCloseToParkedClose));
 
         // Spezial Park-Shootings (Close)
         //pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.INTAKING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), List.of(AutoPaths.intakingCloseToShootCloseParked));
