@@ -10,6 +10,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.lib.Constants;
 import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 
 import java.util.concurrent.TimeUnit;
@@ -109,8 +112,11 @@ public class Shooter {
     private int ballsShot;
 
 
-    private double hoodAdjustment = 0;
-    private double shooterSpeedAdjustment = 0;
+    private double hoodAdjustmentNear = 0;
+    private double hoodAdjustmentFar = 0;
+    private double shooterSpeedAdjustmentNear = 0;
+    private double shooterSpeedAdjustmentFar = 0;
+
 
 
     public Shooter(HardwareMap hardwareMap, ShooterMotorIdlingState initialshooterMotorIdlingState) {
@@ -163,10 +169,16 @@ public class Shooter {
         }
     }
 
-    public void update(double distance, boolean validShootingPose) {
+    public void update(double distance, boolean validShootingPose, Pose2D robotPose) {
         shooterTargetVelocity = shooterVelocityLUT.get(distance);
-        hoodPosition = hoodAdjustment + hoodLUT.get(distance);
-        shooterVelocity = toRPM(shooterSpeedAdjustment + (shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+
+        if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+            hoodPosition = hoodAdjustmentFar + hoodLUT.get(distance);
+            shooterVelocity = toRPM(shooterSpeedAdjustmentFar + (shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+        } else {
+            hoodPosition = hoodAdjustmentNear + hoodLUT.get(distance);
+            shooterVelocity = toRPM(shooterSpeedAdjustmentNear + (shooterLeft.getVelocity() + shooterRight.getVelocity()) / 2);
+        }
 
         if(state == State.AIMING || state == State.SHOOTING) {
             boolean shooterToSpeed = false;
@@ -220,29 +232,62 @@ public class Shooter {
 
     }
 
-    public void adjustHood(boolean hoodPlus) {
+    public void adjustHood(boolean hoodPlus,Pose2D robotPose) {
         if(hoodPlus) {
-            hoodAdjustment += HOOD_STEP_SIZE;
+            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+                hoodAdjustmentFar += HOOD_STEP_SIZE;
+            } else {
+                hoodAdjustmentNear += HOOD_STEP_SIZE;
+            }
         } else {
-            hoodAdjustment -= HOOD_STEP_SIZE;
+            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+                hoodAdjustmentFar -= HOOD_STEP_SIZE;
+            } else {
+                hoodAdjustmentNear -= HOOD_STEP_SIZE;
+            }
         }
     }
 
     public void resetHoodAdjustment() {
-        hoodAdjustment = 0;
+        hoodAdjustmentNear = 0;
+        hoodAdjustmentFar = 0;
     }
 
 
-    public void adjustShooterSpeed(boolean velocityPlus) {
+    public void adjustShooterSpeed(boolean velocityPlus, Pose2D robotPose) {
         if(velocityPlus) {
-            shooterSpeedAdjustment += SHOOTER_STEP_SIZE;
+            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+                shooterSpeedAdjustmentFar += SHOOTER_STEP_SIZE;
+            } else {
+                shooterSpeedAdjustmentNear += SHOOTER_STEP_SIZE;
+            }
         } else {
-            shooterSpeedAdjustment -= SHOOTER_STEP_SIZE;
+            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+                shooterSpeedAdjustmentFar -= SHOOTER_STEP_SIZE;
+            } else {
+                shooterSpeedAdjustmentNear -= SHOOTER_STEP_SIZE;
+            }
         }
     }
 
+    public double getHoodFarAdjustment() {
+        return hoodAdjustmentFar;
+    }
+    public double getHoodNearAdjustment() {
+        return hoodAdjustmentNear;
+    }
+
+    public double getShooterFarAdjustment() {
+        return shooterSpeedAdjustmentFar;
+    }
+    public double getShooterNearAdjustment() {
+        return shooterSpeedAdjustmentNear;
+    }
+
+
     public void resetShooterSpeedAdjustment() {
-        shooterSpeedAdjustment = 0;
+        shooterSpeedAdjustmentFar = 0;
+        shooterSpeedAdjustmentNear = 0;
     }
 
 

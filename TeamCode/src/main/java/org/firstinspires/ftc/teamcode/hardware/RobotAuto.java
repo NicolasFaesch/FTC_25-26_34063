@@ -47,7 +47,7 @@ public class RobotAuto extends Robot {
 //unit of drivetrainAuto.getPose()
 
         super.update(drivetrainAuto.getPose());
-        shooter.update(drivetrainAuto.getDistance(), true);
+        shooter.update(drivetrainAuto.getDistance(), true,myPos);
     }
 
     public void updateTelemetry(TelemetryManager panelsTelemetry, Telemetry telemetry) {
@@ -67,9 +67,9 @@ public class RobotAuto extends Robot {
         panelsTelemetry.addData("Shooter State", shooter.getState());
 
 
-        //telemetry.addLine("=== DEBUG ===");
-        //telemetry.addData("immobile", drivetrainAuto.immobile());
-        //telemetry.addData("time_elapsed", drivetrainAuto.timer.elapsedTime());
+        telemetry.addLine("=== DEBUG ===");
+        telemetry.addData("immobile", drivetrainAuto.immobile());
+        telemetry.addData("time_elapsed", drivetrainAuto.timer.elapsedTime());
         telemetry.addLine("=== ROBOT STATES ===");
         telemetry.addData("Robot State", getState());
         telemetry.addData("Intake State", intake.getState());

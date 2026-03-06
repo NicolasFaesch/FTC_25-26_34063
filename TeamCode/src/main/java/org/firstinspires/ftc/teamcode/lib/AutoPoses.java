@@ -62,7 +62,7 @@ public class AutoPoses {
 
 
     public static AutoPose parkClose      = new AutoPose(-30, 20, 90); // TODO: pose setzten naja
-    public static AutoPose parkFar        = new AutoPose(40, 32.5, 90);
+    public static AutoPose parkFar        = new AutoPose(60, 54, 90); // 40, 32.5, 90
 
     // Gate (aus gate[0])
     public static AutoPose gateReleasing = new AutoPose( 0, 54, 90);
@@ -84,6 +84,7 @@ public class AutoPoses {
     public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
     public static AutoPose loadingZoneAfter  = new AutoPose(62, 57, 80); // TODO: pose setzten naja
 
-
+    public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
+    public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
 }
 

@@ -54,6 +54,10 @@ public class RobotTeleOp extends Robot{
     }
 
     public void update(double currentTime) throws Exception {
+        //Update pos.
+        myPos = drivetrainTeleOp.getPose();
+
+
         double loopTime = currentTime-previousTime;
         previousTime = currentTime;
 
@@ -81,17 +85,17 @@ public class RobotTeleOp extends Robot{
             //shooter.adjustShooterSpeed(true);
             //PoseStorage.parkingCorrectionX -= 0.03;
         } else if(controller2.getdPadUp() == Controller.ButtonState.ON_PRESS) {
-            shooter.adjustHood(true);
+            shooter.adjustHood(true,myPos);
             //PoseStorage.parkingCorrectionY += 0.03;
         } else if(controller2.getdPadDown() == Controller.ButtonState.ON_PRESS) {
-            shooter.adjustHood(false);
+            shooter.adjustHood(false,myPos);
             //PoseStorage.parkingCorrectionY -= 0.03;
         }
 
         if(controller2.getLeftBumper() == Controller.ButtonState.ON_PRESS) {
-            drivetrainTeleOp.adjustAutoAimHeading(autoAimHeadingAdjustment);
+            drivetrainTeleOp.adjustAutoAimHeading(autoAimHeadingAdjustment,myPos);
         } else if(controller2.getRightBumper() == Controller.ButtonState.ON_PRESS) {
-            drivetrainTeleOp.adjustAutoAimHeading((autoAimHeadingAdjustment*-1));
+            drivetrainTeleOp.adjustAutoAimHeading((autoAimHeadingAdjustment*-1),myPos);
         }
 
 
@@ -106,7 +110,7 @@ public class RobotTeleOp extends Robot{
 
 
         drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-                controller1.getRightJoystickXValue(), loopTime);
+                controller1.getRightJoystickXValue(), loopTime, myPos);
         super.update(drivetrainTeleOp.getPose());
 
         controller1.update();
@@ -143,7 +147,7 @@ public class RobotTeleOp extends Robot{
                 colorLED.setColor(ColorLED.Color.OFF);
         }
 
-        shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState);
+        shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState,myPos);
 
         if (controller1.getyButton() == Controller.ButtonState.ON_PRESS) {
             setState(State.IDLE);
@@ -263,6 +267,12 @@ public class RobotTeleOp extends Robot{
             telemetry.addData("Target Velocity", shooter.getShooterTargetVelocity());
         }
         telemetry.addData("Current Velocity", shooter.getShooterVelocity());
+
+        telemetry.addLine("=== ADJUSTMENT ===");
+        telemetry.addData("HoodFarAdjustment", shooter.getHoodFarAdjustment());
+        telemetry.addData("HoodNearAdjustment", shooter.getHoodNearAdjustment());
+
+
 
         // Update PanelsTelemetry
         //drawPath();

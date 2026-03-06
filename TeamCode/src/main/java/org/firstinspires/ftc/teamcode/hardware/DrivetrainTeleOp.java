@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.lib.Constants;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 public class DrivetrainTeleOp extends Drivetrain{
@@ -29,7 +30,9 @@ public class DrivetrainTeleOp extends Drivetrain{
     private boolean parkingMode;
 
 
-    private double manualAdjustment = 0;
+    private double manualAdjustmentFar = 0;
+    private double manualAdjustmentNear = 0;
+
 
     private double previousHeadingError = 0;
 
@@ -50,7 +53,7 @@ public class DrivetrainTeleOp extends Drivetrain{
         parkingMode = false;
     }
 
-    public void update(double leftStickX, double leftStickY, double rightStickX, double loopTime) {
+    public void update(double leftStickX, double leftStickY, double rightStickX, double loopTime,Pose2D robotPose) {
         if(parkingMode) {
             Pose2D botpose = getPose();
 
@@ -86,7 +89,11 @@ public class DrivetrainTeleOp extends Drivetrain{
 
             if (aimingMode) {
                 double headingError = getHeadingError();
-                turn = manualAdjustment + headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
+                if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+                    turn = manualAdjustmentFar + headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
+                } else {
+                    turn = manualAdjustmentNear + headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
+                }
                 previousHeadingError = headingError;
             }
 
@@ -96,11 +103,21 @@ public class DrivetrainTeleOp extends Drivetrain{
 
     }
 
-    public void adjustAutoAimHeading(double adjustment) {
-        manualAdjustment += adjustment;
+    public void adjustAutoAimHeading(double adjustment,Pose2D robotPose) {
+        if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
+            manualAdjustmentFar += adjustment;
+        } else {
+            manualAdjustmentNear += adjustment;
+        }
     }
     public void resetAutoAimHeadingAdjustment() {
-        manualAdjustment = 0;
+        manualAdjustmentFar = 0;
+        manualAdjustmentNear = 0;
+    }
+
+    public goalDistance getGoalDistance() {
+        if(getPose().getX(DistanceUnit.INCH) > Constants.NEAR_PART) return goalDistance.FAR;
+        else return goalDistance.CLOSE;
     }
 
     public void setAimingMode(boolean aimingMode) {
