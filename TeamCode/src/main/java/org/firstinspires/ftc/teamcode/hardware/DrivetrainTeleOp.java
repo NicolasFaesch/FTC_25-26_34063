@@ -58,7 +58,7 @@ public class DrivetrainTeleOp extends Drivetrain{
             Pose2D botpose = getPose();
 
             //Gets the Heading Error (probably (not))
-            double headingError = PoseStorage.parkingHeading - botpose.getHeading(AngleUnit.DEGREES);
+            double headingError = parkingHeading - botpose.getHeading(AngleUnit.DEGREES);
 
             double turn = headingError * AUTO_AIM_KP + (headingError - previousHeadingError) / loopTime * AUTO_AIM_KD;
             previousHeadingError = headingError;

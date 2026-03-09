@@ -44,8 +44,10 @@ public class RobotTeleOp extends Robot{
 
         if(alliance == Alliance.RED) {
             drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseRED);
+            drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingRED);
         } else {
             drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseBLUE);
+            drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingBLUE);
         }
 
 

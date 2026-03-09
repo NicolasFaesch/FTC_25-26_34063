@@ -178,7 +178,7 @@ public class AutoPaths {
         intakingMiddle = createBezierLine(AutoPoses.intakingMiddleBefore, AutoPoses.intakingMiddleAfter);
         intakingFar = createBezierLine(AutoPoses.intakingFarBefore, AutoPoses.intakingFarAfter);
 
-   /*     intakingLoadingZone1 = createBezierLine(AutoPoses.loadingZoneBefore, AutoPoses.loadingZoneAdditional1);
+    /*    intakingLoadingZone1 = createBezierLine(AutoPoses.loadingZoneBefore, AutoPoses.loadingZoneAdditional1);
         intakingLoadingZone2 = createBezierLine(AutoPoses.loadingZoneAdditional1, AutoPoses.loadingZoneAdditional2);
         intakingLoadingZone3 = createBezierLine(AutoPoses.loadingZoneAdditional2, AutoPoses.loadingZoneAfter);
 

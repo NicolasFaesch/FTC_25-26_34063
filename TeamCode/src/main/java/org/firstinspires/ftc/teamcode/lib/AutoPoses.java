@@ -78,11 +78,11 @@ public class AutoPoses {
     public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
     public static AutoPose loadingZoneAdditional1 = new AutoPose(62, 57, 80); // TODO: pose setzten naja
     public static AutoPose loadingZoneAdditional2 = new AutoPose(52, 31, 90); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAfter  = new AutoPose(53, 57, 90); // TODO: pose setzten naja
-*/
+    public static AutoPose loadingZoneAfter  = new AutoPose(53, 57, 90); // TODO: pose setzten naja*/
+
 
     public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAfter  = new AutoPose(62, 57, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAfter  = new AutoPose(64, 54, 80); // TODO: pose setzten naja
 
     public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
     public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja

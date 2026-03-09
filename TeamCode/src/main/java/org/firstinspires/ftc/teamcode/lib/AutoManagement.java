@@ -356,7 +356,7 @@ public class AutoManagement {
                     }
                 }
                 if (robotAuto.drivetrainAuto.immobile()) {
-                    //nextTask();
+                    nextTask();
                 }
                 break;
             case SHOOTING:

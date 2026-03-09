@@ -8,7 +8,7 @@ public class AutoConfigFar {
     @Sorter(sort=0)
     public static AutoManagement.Objective FIRST_OBJECTIVE = AutoManagement.Objective.SHOOT_START;
     @Sorter(sort=1)
-    public static AutoManagement.Objective SECOND_OBJECTIVE = AutoManagement.Objective.LOADING_ZONE;
+    public static AutoManagement.Objective SECOND_OBJECTIVE = AutoManagement.Objective.SPIKE_MARK_FAR;
     @Sorter(sort=2)
     public static AutoManagement.Objective THIRD_OBJECTIVE = AutoManagement.Objective.SHOOT;
     @Sorter(sort=3)

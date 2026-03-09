@@ -17,5 +17,7 @@ public class PoseStorage {
     public static final Pose2D parkingPoseBLUE = new Pose2D(DistanceUnit.METER,(40*2.54)/100,(32.5*2.54)/100,AngleUnit.DEGREES,0); //Todo
     public static double parkingCorrectionX = 0;
     public static double parkingCorrectionY = 0;
-    public static final double parkingHeading = 90; //in Degrees.
+    public static final double parkingHeadingRED = 90; //in Degrees.
+
+    public static final double parkingHeadingBLUE = -90; //in Degrees.
 }
