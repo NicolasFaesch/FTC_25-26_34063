@@ -8,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.Controller;
+import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
 
 public class Robot {
     public Limelight limelight;
@@ -15,6 +16,7 @@ public class Robot {
     public Shooter shooter;
     public Transfer transfer;
     public ColorLED colorLED;
+    public DynamicAiming dynamicAiming;
 
     public enum Alliance {
         RED,
@@ -45,6 +47,7 @@ public class Robot {
         transfer = new Transfer(hardwareMap);
         shooter = new Shooter(hardwareMap, Shooter.ShooterMotorIdlingState.OFF);
         colorLED = new ColorLED(hardwareMap);
+        dynamicAiming = new DynamicAiming();
 
         setState(State.IDLE);
 

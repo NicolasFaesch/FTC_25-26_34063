@@ -170,7 +170,7 @@ public class Shooter {
     }
 
     public void update(double distance, boolean validShootingPose, Pose2D robotPose) {
-        shooterTargetVelocity = shooterVelocityLUT.get(distance);
+        shooterTargetVelocity = shooterVelocityLUT.get(distance)+400; //TODO: remove extra velocity for real shooter
 
         if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
             hoodPosition = hoodAdjustmentFar + hoodLUT.get(distance);
@@ -230,6 +230,54 @@ public class Shooter {
                 break;
         }
 
+    }
+
+    public void dynamicAimingUpdate(double hoodPos, double flywheelVelocity, boolean validShootingPose) {
+        shooterTargetVelocity = flywheelVelocity+400; //TODO: remove extra velocity for real shooter
+        shooterVelocity = toRPM((shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+        if(state == State.AIMING || state == State.SHOOTING) {
+            boolean shooterToSpeed = false;
+            setShooterTargetVelocity(shooterTargetVelocity);
+            hood.setPosition(hoodPos);
+            shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
+
+            if(shooterToSpeed) {
+                shooterMotorState = ShooterMotorState.UP_TO_SPEED;
+            } else {
+                shooterMotorState = ShooterMotorState.RAMPING;
+            }
+        }
+
+        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && feederState == FeederState.READY;
+
+        switch (feederState) {
+            case READY:
+                if(readyToShoot && state == State.SHOOTING) {
+                    feeder.setPosition(FEEDER_EXTENDED);
+                    feederState = FeederState.EXTENDING;
+                    feederTravelTimerUp.start();
+                }
+                break;
+            case EXTENDING:
+                if (feederTravelTimerUp.done()) {
+                    feeder.setPosition(FEEDER_RETRACTED);
+                    feederState = FeederState.RETRACTING;
+                    feederTravelTimerDown.start();
+                }
+                break;
+            case RETRACTING:
+                if (feederTravelTimerDown.done()) {
+                    feederState = FeederState.RETRACTED;
+                    ballsShot += 1;
+                    feederRetractedTimer.start();
+                }
+                break;
+            case RETRACTED:
+                if (feederRetractedTimer.done()) {
+                    feederState = FeederState.READY;
+                }
+                break;
+        }
     }
 
     public void adjustHood(boolean hoodPlus,Pose2D robotPose) {

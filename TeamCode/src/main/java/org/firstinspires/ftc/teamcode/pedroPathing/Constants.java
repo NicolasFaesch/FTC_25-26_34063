@@ -7,12 +7,16 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.constants.PinpointConstants;
+import com.pedropathing.localization.Localizer;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.pedroPathing.lib.EKFConstants;
+import org.firstinspires.ftc.teamcode.pedroPathing.lib.LimelightConstants;
+import org.firstinspires.ftc.teamcode.pedroPathing.lib.PinpointLimelightEKFLocalizer;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
@@ -42,7 +46,7 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
-    public static PinpointConstants localizerConstants = new PinpointConstants()
+    public static PinpointConstants pinpointConstants = new PinpointConstants()
             .forwardPodY(-48.0)
             .strafePodX(-115.0)
             .distanceUnit(DistanceUnit.MM)
@@ -52,11 +56,32 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             ;
 
+    public static LimelightConstants limelightConstants = new LimelightConstants()
+            .pipeline(1)
+            .hardwareMapName("limelight")
+            .mt1MaxDistanceInches(60)
+            .mt1MaxVelocity(10)
+            .mt1MaxSkewDegrees(10)
+            .networkLatencySeconds(0.01)
+            ;
+
+    public static EKFConstants ekfConstants = new EKFConstants()
+            .visionWeightScaler(0.2)
+            .noiseBase(1.0)
+            .kVelocity(0.005)
+            .kAngularVelocity(0.001)
+            .kDistance(0.03)
+            .kSkew(0.03)
+            .distanceExponential(1.3)
+            .dualTagDistanceScaler(0.4)
+            ;
+
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
-                .pinpointLocalizer(localizerConstants)
+                //.pinpointLocalizer(pinpointConstants)
+                .setLocalizer(new PinpointLimelightEKFLocalizer(hardwareMap, pinpointConstants, limelightConstants, ekfConstants))
                 .build();
     }
 }

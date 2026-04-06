@@ -43,6 +43,10 @@ public class Drivetrain {
         this.targetPose = pose2DtoPose(targetPose);
     }
 
+    public Pose2D getTargetPose() {
+        return posetoPose2D(targetPose);
+    }
+
     public void setParkingPose(Pose2D parkingPose) {this.parkingPose = parkingPose;}
     public void setParkingHeading(double heading) {this.parkingHeading = heading;}
 

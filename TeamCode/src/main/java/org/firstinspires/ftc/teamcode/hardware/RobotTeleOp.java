@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad2;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.Controller;
+import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 import org.firstinspires.ftc.teamcode.lib.PositionChecker;
 import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
@@ -50,6 +52,8 @@ public class RobotTeleOp extends Robot{
             drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingBLUE);
         }
 
+        DynamicAiming.createLUTs();
+        DynamicAiming.setTargetPose(drivetrainTeleOp.getTargetPose());
 
         controller1 = new Controller(gamepad1);
         controller2 = new Controller(gamepad2);
@@ -110,15 +114,14 @@ public class RobotTeleOp extends Robot{
 
 
 
-
-        drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-                controller1.getRightJoystickXValue(), loopTime, myPos);
+        //drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
+        //        controller1.getRightJoystickXValue(), loopTime, myPos);
         super.update(drivetrainTeleOp.getPose());
 
         controller1.update();
         controller2.update();
 
-
+        /*
         Pose2D limelightPose;
         if(controller2.getLeftJoystickButton() == Controller.ButtonState.PRESSED) { // use MT1 for calib
             limelightPose = getLimelightPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity(), false);
@@ -128,11 +131,12 @@ public class RobotTeleOp extends Robot{
         if (isUsingLimelight()) {
             drivetrainTeleOp.overridePose(limelightPose);
         }
-
+        */
 
         boolean validShootingPose = drivetrainTeleOp.getDistance() >= ShooterLUT.minDistance;
-        validShootingPose = PositionChecker.checkInZones(drivetrainTeleOp.getPose());
-        boolean validShootingState = Math.abs(drivetrainTeleOp.getHeadingError()) <= AIMING_MAX_HEADING_ERROR;
+        validShootingPose &= PositionChecker.checkInZones(drivetrainTeleOp.getPose());
+        boolean validShootingState = true;//Math.abs(drivetrainTeleOp.getHeadingError()) <= AIMING_MAX_HEADING_ERROR;
+        //TODO: fix state
 
         switch (state) {
             case AIMING:
@@ -149,7 +153,22 @@ public class RobotTeleOp extends Robot{
                 colorLED.setColor(ColorLED.Color.OFF);
         }
 
-        shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState,myPos);
+        if(controller1.getLeftTriggerValue() > 0.5) { // TODO: remove hack
+            shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState,myPos);
+            drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
+                    controller1.getRightJoystickXValue(), loopTime, myPos);
+        } else {
+            DynamicAiming.ShooterState targetingVals = DynamicAiming.calculateTargeting(
+                    drivetrainTeleOp.getPose().getX(DistanceUnit.METER), drivetrainTeleOp.getPose().getY(DistanceUnit.METER),
+                    drivetrainTeleOp.getPose().getHeading(AngleUnit.DEGREES), drivetrainTeleOp.getVelocityX(),
+                    drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity()
+            );
+            shooter.dynamicAimingUpdate(targetingVals.hoodAngle, targetingVals.flywheelRpm, validShootingPose);
+            drivetrainTeleOp.updateDynamic(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
+                    controller1.getRightJoystickXValue(), loopTime, myPos, Math.toDegrees(targetingVals.turretAngle));
+        }
+
+
 
         if (controller1.getyButton() == Controller.ButtonState.ON_PRESS) {
             setState(State.IDLE);
@@ -238,6 +257,8 @@ public class RobotTeleOp extends Robot{
             panelsTelemetry.addData("Limelight", position);
         }
         panelsTelemetry.addData("Distance", drivetrainTeleOp.getDistance());
+        panelsTelemetry.addData("Velocity X", drivetrainTeleOp.getVelocityX());
+        panelsTelemetry.addData("Velocity Y", drivetrainTeleOp.getVelocityY());
 
         telemetry.addLine("=== POSE ===");
         if (!isUsingLimelight()) {
@@ -246,6 +267,8 @@ public class RobotTeleOp extends Robot{
             telemetry.addData("Limelight", position);
         }
         telemetry.addData("Distance", drivetrainTeleOp.getDistance());
+        telemetry.addData("Velocity X", drivetrainTeleOp.getVelocityX());
+        telemetry.addData("Velocity Y", drivetrainTeleOp.getVelocityY());
 
         // Shooter Info
         panelsTelemetry.addLine("=== SHOOTER ===");
