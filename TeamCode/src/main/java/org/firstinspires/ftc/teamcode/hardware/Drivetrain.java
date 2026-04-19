@@ -17,10 +17,6 @@ import com.pedropathing.math.Vector;
 public class Drivetrain {
     protected Follower follower;
 
-    protected Pose targetPose;
-    protected Pose2D parkingPose;
-    protected double parkingHeading;
-
     protected Drivetrain(HardwareMap hardwareMap, Pose2D startPose) {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(pose2DtoPose(startPose));
@@ -31,27 +27,8 @@ public class Drivetrain {
         PoseStorage.currentPose = getPose();
     }
 
-    public void overridePose(Pose2D newPose) {
-        follower.setPose(pose2DtoPose(newPose));
-    }
-
     public Pose2D getPose() {
         return posetoPose2D(follower.getPose());
-    }
-
-    public void setTargetPose(Pose2D targetPose) {
-        this.targetPose = pose2DtoPose(targetPose);
-    }
-
-    public Pose2D getTargetPose() {
-        return posetoPose2D(targetPose);
-    }
-
-    public void setParkingPose(Pose2D parkingPose) {this.parkingPose = parkingPose;}
-    public void setParkingHeading(double heading) {this.parkingHeading = heading;}
-
-    public double getDistance() {
-        return inchToMeter(targetPose.distanceFrom(follower.getPose()));
     }
 
     public double getVelocityX() {
@@ -83,7 +60,6 @@ public class Drivetrain {
     protected double meterToInch(double meters) {
         return meters/25.4*1000;
     }
-
 
 
     public Follower getFollower() {return follower;}

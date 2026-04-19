@@ -9,14 +9,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.Controller;
 import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
+import org.firstinspires.ftc.teamcode.lib.PoseStorage;
+import org.firstinspires.ftc.teamcode.lib.PositionChecker;
+import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 
 public class Robot {
-    public Limelight limelight;
+    public Drivetrain drivetrain;
     public Intake intake;
     public Shooter shooter;
     public Transfer transfer;
     public ColorLED colorLED;
-    public DynamicAiming dynamicAiming;
+    public Turret turret;
 
     public enum Alliance {
         RED,
@@ -33,89 +36,101 @@ public class Robot {
         PARKING
     }
 
-    protected State state = null;
+    protected State state;
+    protected Alliance alliance;
 
-    private boolean usingLimelight = false;
-
-    protected Pose2D myPos = new Pose2D(DistanceUnit.INCH,0,0,AngleUnit.DEGREES,0);
+    protected boolean validShootingPose;
+    protected boolean turretReady;
+    protected boolean blockerDisengaged;
 
 
     public Robot(HardwareMap hardwareMap, Alliance alliance) {
-        limelight = new Limelight(hardwareMap,
-                (alliance == Alliance.RED) ? Limelight.Pipeline.RED_GOAL: Limelight.Pipeline.BLUE_GOAL);
         intake = new Intake(hardwareMap);
         transfer = new Transfer(hardwareMap);
-        shooter = new Shooter(hardwareMap, Shooter.ShooterMotorIdlingState.OFF);
+        shooter = new Shooter(hardwareMap);
         colorLED = new ColorLED(hardwareMap);
-        dynamicAiming = new DynamicAiming();
+        turret = new Turret(hardwareMap);
 
+        this.alliance = alliance;
+
+        validShootingPose = false;
+        turretReady = false;
+        blockerDisengaged = false;
+
+        DynamicAiming.setTargetPose(this.alliance == Alliance.RED ? PoseStorage.targetPoseRed : PoseStorage.targetPoseBlue);
+        DynamicAiming.createLUTs();
+
+        state = null; // force state change initially
         setState(State.IDLE);
-
     }
 
-    protected void update(Pose2D currentPose) {
-        //intake.update();
-        //transfer.update();
+    protected void setDrivetrain(Drivetrain drivetrain) {
+        this.drivetrain = drivetrain;
+    }
 
-        // Set transfer to feeding mode
-        if(shooter.getState() == Shooter.State.AIMING || shooter.getState() == Shooter.State.SHOOTING) {
-            if(shooter.getFeederState() == Shooter.FeederState.READY || shooter.getFeederState() == Shooter.FeederState.RETRACTED) {
-                transfer.setState(Transfer.State.FEEDING);
-                intake.setState(Intake.State.FEEDING);
-            } else {
-                transfer.setState(Transfer.State.IDLE);
-                intake.setState(Intake.State.STORING);
-            }
-        }
+    protected void update() {
+        blockerDisengaged = shooter.getBlockerState() == Shooter.BlockerState.DISENGAGED;
+        DynamicAiming.AimingParams aimingParams = DynamicAiming.calculateTargeting(drivetrain.getPose(), drivetrain.getVelocityX(), drivetrain.getVelocityY(), drivetrain.getAngularVelocity());
 
-        // Update limelight
-        limelight.update(currentPose.getHeading(AngleUnit.DEGREES));
+        intake.update(blockerDisengaged);
+        transfer.update(blockerDisengaged);
+        turret.update(aimingParams.turretAngle);
 
+        validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
+        turretReady = turret.isOnTarget();
 
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, turretReady);
     }
 
 
     public void setState(State state) {
-        if(state != this.state) {
+        if (state != this.state) {
             this.state = state;
-            switch(state) {
+            switch (state) {
                 case IDLE:
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.OFF);
                     intake.setState(Intake.State.IDLE);
                     transfer.setState(Transfer.State.IDLE);
+                    turret.setState(Turret.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
                     break;
                 case INTAKING:
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.OFF);
                     intake.setState(Intake.State.INTAKING);
                     transfer.setState(Transfer.State.INTAKING);
+                    turret.setState(Turret.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
                     break;
                 case OUTTAKING:
                     intake.setState(Intake.State.OUTTAKING);
                     transfer.setState(Transfer.State.OUTTAKING);
+                    turret.setState(Turret.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
                     break;
                 case SHOOTING:
-                    intake.setState(Intake.State.STORING);
-                    transfer.setState(Transfer.State.STORING);
+                    intake.setState(Intake.State.FEEDING);
+                    transfer.setState(Transfer.State.FEEDING);
+                    turret.setState(Turret.State.TRACKING);
                     shooter.setState(Shooter.State.SHOOTING);
                     break;
                 case AIMING:
                     intake.setState(Intake.State.STORING);
-                    transfer.setState(Transfer.State.FEEDING);
+                    transfer.setState(Transfer.State.STORING);
+                    turret.setState(Turret.State.TRACKING);
                     shooter.setState(Shooter.State.AIMING);
                     break;
                 case STORING:
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.SPINNING);
                     intake.setState(Intake.State.STORING);
-                    transfer.setState(Transfer.State.FEEDING);
+                    transfer.setState(Transfer.State.STORING);
+                    turret.setState(Turret.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
                     break;
                 case PARKING:
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.OFF);
                     intake.setState(Intake.State.IDLE);
                     transfer.setState(Transfer.State.IDLE);
+                    turret.setState(Turret.State.STORED);
                     shooter.setState(Shooter.State.IDLE);
                     break;
             }
@@ -126,25 +141,4 @@ public class Robot {
     public State getState() {
         return state;
     }
-
-    protected Pose2D getLimelightPose(double xVelocity, double yVelocity, double headingVelocity, boolean useMT2) {
-        Pose2D limelightPose;
-        if(!useMT2) { // use MT1 for calib
-            limelightPose = limelight.getPose(xVelocity, yVelocity, headingVelocity);
-        } else { // otherwise MT2 with occasional MT1 updates when close
-            limelightPose = limelight.getPoseMT2(xVelocity, yVelocity, headingVelocity);
-        }
-        usingLimelight = (limelightPose != null);
-        return limelightPose;
-    }
-
-    public boolean isUsingLimelight() {return usingLimelight;}
-
-    public void resetShots() {shooter.resetShots();}
-
-    public int getBallsShot() {return shooter.getBallsShot();}
-
-
-
-
 }

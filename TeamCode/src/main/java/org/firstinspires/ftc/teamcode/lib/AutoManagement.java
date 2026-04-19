@@ -264,7 +264,6 @@ public class AutoManagement {
                 break;
             case SHOOTING:
                 robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
-                robotAuto.resetShots();
                 robotAuto.setState(Robot.State.SHOOTING);
                 break;
             case WAITING:
@@ -360,7 +359,8 @@ public class AutoManagement {
                 }
                 break;
             case SHOOTING:
-                if (robotAuto.getBallsShot() >= 3)
+                // TODO: different method to count balls sho
+                //if (robotAuto.getBallsShot() >= 3)
                     nextTask();
                 break;
             case WAITING:

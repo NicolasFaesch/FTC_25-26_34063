@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.TestingTuning;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Disabled
 @Configurable
 @TeleOp(name="Turret Test - Servo Mode")
 public class TurretTestServoMode extends OpMode {

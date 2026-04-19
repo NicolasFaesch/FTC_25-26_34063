@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
-import com.arcrobotics.ftclib.util.Timing;
+import com.arcrobotics.ftclib.util.Timing.Timer;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,27 +20,21 @@ import java.util.concurrent.TimeUnit;
 @Configurable
 public class Shooter {
 
-
-
-    // Feeder Timings (in milliseconds)
-    public static long FEEDER_TRAVEL_TIME_UP = 120; // time for the feeder servo to move up or down
-    public static long FEEDER_TRAVEL_TIME_DOWN = 100; // time for the feeder servo to move up or down
-    public static long FEEDER_IDLE_TIME = 200; // time the feeder has to wait for ball to come into position
-
-    // Feeder Positions
-    public static double FEEDER_RETRACTED = 0.825; // 0.95
-    public static double FEEDER_EXTENDED = 0.6;
-
     // Hood Positions (for manual mode)
     public static double HOOD_MIN_POSITION = 0.1;
     public static double HOOD_MAX_POSITION = 0.975;
     public static double HOOD_STEP_SIZE = 0.025;
 
+    // Blocker Positions & time
+    public static double BLOCKER_ENGAGED_POSITION = 0.0;
+    public static double BLOCKER_DISENGAGED_POSITION = 0.0;
+    public static long BLOCKER_TIME_MS = 100;
+
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough too shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -68,35 +62,30 @@ public class Shooter {
         RAMPING
     }
 
-    // Feeder State
-    enum FeederState {
-        READY,
-        EXTENDING,
-        RETRACTING,
-        RETRACTED
-    }
-
     public enum ShooterMotorIdlingState {
         OFF,
         SPINNING
     }
 
+    public enum BlockerState {
+        ENGAGED,
+        ENGAGING,
+        DISENGAGED,
+        DISENGAGING
+    }
+
     private State state;
     private ShooterMotorState shooterMotorState;
-    private FeederState feederState;
     private ShooterMotorIdlingState shooterMotorIdlingState;
-
-    private Timing.Timer feederTravelTimerUp = new Timing.Timer(FEEDER_TRAVEL_TIME_UP, TimeUnit.MILLISECONDS);
-    private Timing.Timer feederTravelTimerDown = new Timing.Timer(FEEDER_TRAVEL_TIME_DOWN, TimeUnit.MILLISECONDS);
-    private Timing.Timer feederRetractedTimer = new Timing.Timer(FEEDER_IDLE_TIME, TimeUnit.MILLISECONDS); // includes waiting for feeding of new ball
+    private BlockerState blockerState;
 
     private boolean readyToShoot;
 
     private DcMotorEx shooterRight;
     private DcMotorEx shooterLeft;
 
-    private Servo feeder;
     private Servo hood;
+    private Servo blocker;
 
     private double hoodPositionManual = (HOOD_MAX_POSITION+HOOD_MIN_POSITION)/2; // manual set hood position
     private double shooterTargetVelocityManual = (SHOOTER_MAX_VELOCITY + SHOOTER_MIN_VELOCITY)/2; // manual override velocity
@@ -105,27 +94,19 @@ public class Shooter {
     private double shooterTargetVelocity; // shooter velocity as calculated by LUT
     private double shooterVelocity; // actual velocity of the shooter
 
-    private InterpLUT shooterVelocityLUT = ShooterLUT.createVelocityLUT();
-    private InterpLUT hoodLUT = ShooterLUT.createHoodLUT();
-
     private boolean manualOverride = false;
-    private int ballsShot;
 
 
-    private double hoodAdjustmentNear = 0;
-    private double hoodAdjustmentFar = 0;
-    private double shooterSpeedAdjustmentNear = 0;
-    private double shooterSpeedAdjustmentFar = 0;
+    private Timer blockerTimer = new Timer(BLOCKER_TIME_MS, TimeUnit.MILLISECONDS);
 
 
 
-    public Shooter(HardwareMap hardwareMap, ShooterMotorIdlingState initialshooterMotorIdlingState) {
+    public Shooter(HardwareMap hardwareMap) {
         shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
 
         hood = hardwareMap.get(Servo.class, "hood");
-        feeder = hardwareMap.get(Servo.class, "feeder");
-
+        blocker = hardwareMap.get(Servo.class, "blocker");
 
         shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
         shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
@@ -137,21 +118,23 @@ public class Shooter {
         shooterRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
         hood.setPosition(hoodPosition);
-        feeder.setPosition(FEEDER_RETRACTED);
-        feederState = FeederState.READY;
+        blocker.setPosition(BLOCKER_ENGAGED_POSITION);
 
         setShooterPIDFGains(SHOOTER_KP, SHOOTER_KI, SHOOTER_KD, SHOOTER_KV);
 
-        setShooterMotorIdlingMode(initialshooterMotorIdlingState);
+        setShooterMotorIdlingMode(ShooterMotorIdlingState.OFF);
         setState(State.IDLE);
-
-        resetShots();
+        blockerState = BlockerState.ENGAGED;
     }
 
 
     private void changeState() {
         switch(state) {
             case IDLE:
+                if(blockerState == BlockerState.DISENGAGED || blockerState == BlockerState.DISENGAGING) {
+                    blocker.setPosition(BLOCKER_ENGAGED_POSITION);
+                    blockerTimer.start();
+                }
                 if(shooterMotorIdlingState == ShooterMotorIdlingState.OFF) {
                     shooterLeft.setPower(0);
                     shooterRight.setPower(0);
@@ -162,85 +145,20 @@ public class Shooter {
                     shooterMotorState = ShooterMotorState.IDLE;
                 }
                 break;
-            case AIMING: // DON'T add a break. The goal is to jump to shooting case since identical actions (for now)
+            case AIMING:
             case SHOOTING:
                 shooterMotorState = ShooterMotorState.RAMPING;
                 break;
         }
     }
 
-    public void update(double distance, boolean validShootingPose, Pose2D robotPose) {
-        shooterTargetVelocity = shooterVelocityLUT.get(distance)+400; //TODO: remove extra velocity for real shooter
-
-        if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
-            hoodPosition = hoodAdjustmentFar + hoodLUT.get(distance);
-            shooterVelocity = toRPM(shooterSpeedAdjustmentFar + (shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
-        } else {
-            hoodPosition = hoodAdjustmentNear + hoodLUT.get(distance);
-            shooterVelocity = toRPM(shooterSpeedAdjustmentNear + (shooterLeft.getVelocity() + shooterRight.getVelocity()) / 2);
-        }
-
-        if(state == State.AIMING || state == State.SHOOTING) {
-            boolean shooterToSpeed = false;
-            if(manualOverride) {
-                setShooterTargetVelocity(shooterTargetVelocityManual);
-                hood.setPosition(hoodPositionManual);
-                shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocityManual) <= SHOOTER_VELOCITY_THRESHOLD;
-            } else {
-                setShooterTargetVelocity(shooterTargetVelocity);
-                hood.setPosition(hoodPosition);
-                shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
-            }
-
-            if(shooterToSpeed) {
-                shooterMotorState = ShooterMotorState.UP_TO_SPEED;
-            } else {
-                shooterMotorState = ShooterMotorState.RAMPING;
-            }
-        }
-
-        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && feederState == FeederState.READY;
-
-        switch (feederState) {
-            case READY:
-                if(readyToShoot && state == State.SHOOTING) {
-                    feeder.setPosition(FEEDER_EXTENDED);
-                    feederState = FeederState.EXTENDING;
-                    feederTravelTimerUp.start();
-                }
-                break;
-            case EXTENDING:
-                if (feederTravelTimerUp.done()) {
-                    feeder.setPosition(FEEDER_RETRACTED);
-                    feederState = FeederState.RETRACTING;
-                    feederTravelTimerDown.start();
-                }
-                break;
-            case RETRACTING:
-                if (feederTravelTimerDown.done()) {
-                    feederState = FeederState.RETRACTED;
-                    ballsShot += 1;
-                    feederRetractedTimer.start();
-                }
-                break;
-        case RETRACTED:
-                if (feederRetractedTimer.done()) {
-                    feederState = FeederState.READY;
-                }
-                break;
-        }
-
-    }
-
-    public void dynamicAimingUpdate(double hoodPos, double flywheelVelocity, boolean validShootingPose) {
-        shooterTargetVelocity = flywheelVelocity+400; //TODO: remove extra velocity for real shooter
+    public void update(double hoodPos, double flywheelVelocity, boolean validShootingPose, boolean turretReady) {
+        shooterTargetVelocity = flywheelVelocity;
         shooterVelocity = toRPM((shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+        hood.setPosition(hoodPos);
         if(state == State.AIMING || state == State.SHOOTING) {
-            boolean shooterToSpeed = false;
             setShooterTargetVelocity(shooterTargetVelocity);
-            hood.setPosition(hoodPos);
-            shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
-
+            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;
             } else {
@@ -248,94 +166,29 @@ public class Shooter {
             }
         }
 
-        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && feederState == FeederState.READY;
+        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && turretReady;
 
-        switch (feederState) {
-            case READY:
-                if(readyToShoot && state == State.SHOOTING) {
-                    feeder.setPosition(FEEDER_EXTENDED);
-                    feederState = FeederState.EXTENDING;
-                    feederTravelTimerUp.start();
-                }
-                break;
-            case EXTENDING:
-                if (feederTravelTimerUp.done()) {
-                    feeder.setPosition(FEEDER_RETRACTED);
-                    feederState = FeederState.RETRACTING;
-                    feederTravelTimerDown.start();
-                }
-                break;
-            case RETRACTING:
-                if (feederTravelTimerDown.done()) {
-                    feederState = FeederState.RETRACTED;
-                    ballsShot += 1;
-                    feederRetractedTimer.start();
-                }
-                break;
-            case RETRACTED:
-                if (feederRetractedTimer.done()) {
-                    feederState = FeederState.READY;
-                }
-                break;
+        // update blocker state
+        if(blockerState == BlockerState.DISENGAGING && blockerTimer.done()) {
+            blockerState = BlockerState.DISENGAGED;
         }
-    }
 
-    public void adjustHood(boolean hoodPlus,Pose2D robotPose) {
-        if(hoodPlus) {
-            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
-                hoodAdjustmentFar += HOOD_STEP_SIZE;
-            } else {
-                hoodAdjustmentNear += HOOD_STEP_SIZE;
+        if (blockerState == BlockerState.ENGAGING && blockerTimer.done()) {
+            blockerState = BlockerState.ENGAGED;
+        }
+
+        // engage or disengage blocker if good to shoot
+        if(state == State.SHOOTING && readyToShoot) {
+            if(blockerState == BlockerState.ENGAGED || blockerState == BlockerState.ENGAGING) {
+                blocker.setPosition(BLOCKER_DISENGAGED_POSITION);
+                blockerTimer.start();
             }
         } else {
-            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
-                hoodAdjustmentFar -= HOOD_STEP_SIZE;
-            } else {
-                hoodAdjustmentNear -= HOOD_STEP_SIZE;
+            if(blockerState == BlockerState.DISENGAGED || blockerState == BlockerState.DISENGAGING) {
+                blocker.setPosition(BLOCKER_ENGAGED_POSITION);
+                blockerTimer.start();
             }
         }
-    }
-
-    public void resetHoodAdjustment() {
-        hoodAdjustmentNear = 0;
-        hoodAdjustmentFar = 0;
-    }
-
-
-    public void adjustShooterSpeed(boolean velocityPlus, Pose2D robotPose) {
-        if(velocityPlus) {
-            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
-                shooterSpeedAdjustmentFar += SHOOTER_STEP_SIZE;
-            } else {
-                shooterSpeedAdjustmentNear += SHOOTER_STEP_SIZE;
-            }
-        } else {
-            if(robotPose.getX(DistanceUnit.INCH) > Constants.NEAR_PART) {
-                shooterSpeedAdjustmentFar -= SHOOTER_STEP_SIZE;
-            } else {
-                shooterSpeedAdjustmentNear -= SHOOTER_STEP_SIZE;
-            }
-        }
-    }
-
-    public double getHoodFarAdjustment() {
-        return hoodAdjustmentFar;
-    }
-    public double getHoodNearAdjustment() {
-        return hoodAdjustmentNear;
-    }
-
-    public double getShooterFarAdjustment() {
-        return shooterSpeedAdjustmentFar;
-    }
-    public double getShooterNearAdjustment() {
-        return shooterSpeedAdjustmentNear;
-    }
-
-
-    public void resetShooterSpeedAdjustment() {
-        shooterSpeedAdjustmentFar = 0;
-        shooterSpeedAdjustmentNear = 0;
     }
 
 
@@ -351,8 +204,6 @@ public class Shooter {
         return state;
     }
 
-    public FeederState getFeederState() {return feederState;}
-
     public void setShooterMotorIdlingMode(ShooterMotorIdlingState shooterMotorIdlingState) {
         this.shooterMotorIdlingState = shooterMotorIdlingState;
     }
@@ -360,6 +211,10 @@ public class Shooter {
     public ShooterMotorIdlingState getShooterMotorIdlingState() {
         return shooterMotorIdlingState;
     }
+
+    public BlockerState getBlockerState() {return blockerState;}
+
+    public boolean getReadyToShoot() {return readyToShoot;}
 
     public void setManualOverride(boolean manualOverride) {
         this.manualOverride = manualOverride;
@@ -420,14 +275,6 @@ public class Shooter {
     public void setShooterTargetVelocity(double shooterTargetVelocity) {
         shooterLeft.setVelocity(toTPS(shooterTargetVelocity));
         shooterRight.setVelocity(toTPS(shooterTargetVelocity));
-    }
-
-    public void resetShots() {
-        ballsShot = 0;
-    }
-
-    public int getBallsShot() {
-        return  ballsShot;
     }
 
     public void setShooterPIDFGains(double kP, double kI, double kD, double kV) {

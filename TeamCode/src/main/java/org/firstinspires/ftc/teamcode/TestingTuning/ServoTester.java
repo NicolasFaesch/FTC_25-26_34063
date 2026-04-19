@@ -8,17 +8,17 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ServoTester extends OpMode {
 
     Servo hood;
-    Servo feeder;
+    Servo blocker;
 
     double hoodPosition = 0.5;
-    double feederPosition = 0.8;
+    double blockerPosition = 0.8;
 
     double step_size = 0.025;
 
     @Override
     public void init() {
         hood = hardwareMap.get(Servo.class, "hood");
-        feeder = hardwareMap.get(Servo.class, "feeder_servo");
+        blocker = hardwareMap.get(Servo.class, "blocker");
     }
 
     @Override
@@ -38,24 +38,24 @@ public class ServoTester extends OpMode {
         }
 
         if(gamepad1.dpadRightWasPressed()) {
-            feederPosition += step_size;
-            if(feederPosition > 1.0) {
-                feederPosition = 1.0;
+            blockerPosition += step_size;
+            if(blockerPosition > 1.0) {
+                blockerPosition = 1.0;
             }
         }
 
         if(gamepad1.dpadLeftWasPressed()) {
-            feederPosition -= step_size;
-            if(feederPosition < 0.0) {
-                feederPosition = 0.0;
+            blockerPosition -= step_size;
+            if(blockerPosition < 0.0) {
+                blockerPosition = 0.0;
             }
         }
 
         hood.setPosition(hoodPosition);
-        feeder.setPosition(feederPosition);
+        blocker.setPosition(blockerPosition);
 
         telemetry.addData("hood position", hoodPosition);
-        telemetry.addData("feeder position", feederPosition);
+        telemetry.addData("blocker position", blockerPosition);
         telemetry.update();
     }
 }

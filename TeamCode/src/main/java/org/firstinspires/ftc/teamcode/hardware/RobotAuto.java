@@ -22,32 +22,12 @@ public class RobotAuto extends Robot {
         super(hardwareMap, alliance);
 
         drivetrainAuto = new DrivetrainAuto(hardwareMap, startPose);
-
-        drivetrainAuto.setTargetPose(
-                (alliance == Alliance.RED) ? PoseStorage.targetPoseRed : PoseStorage.targetPoseBlue
-        );
+        setDrivetrain(drivetrainAuto);
     }
 
     public void update() {
         drivetrainAuto.update();
-
-        Pose2D limelightPose = getLimelightPose(
-                drivetrainAuto.getVelocityX(),
-                drivetrainAuto.getVelocityY(),
-                drivetrainAuto.getAngularVelocity(),
-                true
-        );
-
-    //unit of limeLightPose
-
-         if (limelightPose != null) {
-             drivetrainAuto.overridePose(limelightPose);
-         }
-
-//unit of drivetrainAuto.getPose()
-
-        super.update(drivetrainAuto.getPose());
-        shooter.update(drivetrainAuto.getDistance(), true,myPos);
+        super.update();
     }
 
     public void updateTelemetry(TelemetryManager panelsTelemetry, Telemetry telemetry) {
@@ -78,20 +58,10 @@ public class RobotAuto extends Robot {
 
         // Pose
         panelsTelemetry.addLine("=== POSE ===");
-        if (!isUsingLimelight()) {
-            panelsTelemetry.addData("Odometry", position);
-        } else {
-            panelsTelemetry.addData("Limelight", position);
-        }
-        panelsTelemetry.addData("Distance", drivetrainAuto.getDistance());
+        panelsTelemetry.addData("Fused", position);
 
         telemetry.addLine("=== POSE ===");
-        if (!isUsingLimelight()) {
-            telemetry.addData("Odometry", position);
-        } else {
-            telemetry.addData("Limelight", position);
-        }
-        telemetry.addData("Distance", drivetrainAuto.getDistance());
+        telemetry.addData("Fused", position);
 
         // Shooter Info
         panelsTelemetry.addLine("=== SHOOTER ===");

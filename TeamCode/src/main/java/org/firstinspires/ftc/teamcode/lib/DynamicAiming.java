@@ -3,14 +3,14 @@ package org.firstinspires.ftc.teamcode.lib;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 @Configurable
 public class DynamicAiming {
     /**
-     * Handles all dynamic calculations for an FTC shoot-on-the-move turret.
-     * Assumes a standard coordinate system where X is forward/backward and Y is left/right.
+     * Handles all dynamic calculations for the shoot-on-the-move turret.
      */
 
     // --- Tuning Constants ---
@@ -34,6 +34,8 @@ public class DynamicAiming {
     private static double targetX = 0.0;
     private static double targetY = 0.0;
 
+    private static double targetDistance = 0.0;
+
     // --- LUT Interpolators ---
     private static InterpLUT hoodLUT;
     private static InterpLUT velocityLUT;
@@ -52,30 +54,31 @@ public class DynamicAiming {
 
     /**
      * Calculates the required turret angle, hood angle, and flywheel RPM.
-     * @param robotX       Current robot X position (meters or inches)
-     * @param robotY       Current robot Y position
-     * @param robotHeading Current robot heading (radians)
-     * @param rawVx        Raw X velocity from Odometry
-     * @param rawVy        Raw Y velocity from Odometry
-     * @param rawVOmega    Raw Angular velocity from Odometry (rad/s)
-     * @return A ShooterState object containing the hardware commands
+     * @param robotPose    Current robot pose (meters or inches)
+     * @param odomVx        X velocity from Odometry
+     * @param odomVy        Y velocity from Odometry
+     * @param odomVOmega    Angular velocity from Odometry (deg/s)
+     * @return An AimingParams object containing the hardware commands
      */
-    public static ShooterState calculateTargeting(
-            double robotX, double robotY, double robotHeading,
-            double rawVx, double rawVy, double rawVOmega) {
+    public static AimingParams calculateTargeting(Pose2D robotPose, double odomVx, double odomVy, double odomVOmega) {
+
+        // Extract robot pose
+        double robotX = robotPose.getX(DistanceUnit.METER);
+        double robotY = robotPose.getY(DistanceUnit.METER);
+        double robotHeading = robotPose.getHeading(AngleUnit.DEGREES);
 
         // Filter the Odometry Velocities (Low-Pass EMA Filter)
-        filteredVx = (kVelFilter * rawVx) + ((1.0 - kVelFilter) * filteredVx);
-        filteredVy = (kVelFilter * rawVy) + ((1.0 - kVelFilter) * filteredVy);
-        filteredVOmega = (kVelFilter * rawVOmega) + ((1.0 - kVelFilter) * filteredVOmega);
+        filteredVx = (kVelFilter * odomVx) + ((1.0 - kVelFilter) * filteredVx);
+        filteredVy = (kVelFilter * odomVy) + ((1.0 - kVelFilter) * filteredVy);
+        filteredVOmega = (kVelFilter * odomVOmega) + ((1.0 - kVelFilter) * filteredVOmega);
 
         // Calculate Initial Distance to get Time of Flight (ToF)
         double dx = targetX - robotX;
         double dy = targetY - robotY;
-        double initialDistance = Math.hypot(dx, dy);
+        targetDistance = Math.hypot(dx, dy);
 
         // Fetch empirical ToF from LUT
-        double tof = tofLUT.get(initialDistance);
+        double tof = tofLUT.get(targetDistance);
 
         // Calculate Virtual Target (compensating for velocity and drag)
         double virtualTargetX = targetX - (filteredVx * tof * kDrag);
@@ -100,8 +103,7 @@ public class DynamicAiming {
         // Final commanded turret angle (Robot-centric)
         double commandedTurretAngle = wrapAngle(fieldHeadingToVt - futureRobotHeading);
 
-        // TODO: replace angle with commandedTurretAngle
-        return new ShooterState(Math.atan2(vtDy, vtDx), commandedHoodPos, commandedRPM);
+        return new AimingParams(commandedTurretAngle, commandedHoodPos, commandedRPM);
     }
 
     /**
@@ -118,16 +120,18 @@ public class DynamicAiming {
     /**
      * Simple data container for returning the hardware targets.
      */
-    public static class ShooterState {
+    public static class AimingParams {
         public double turretAngle; // Radians relative to robot forward
         public double hoodAngle;   // Servo units or degrees
         public double flywheelRpm; // Locked target RPM
 
-        public ShooterState(double turretAngle, double hoodAngle, double flywheelRpm) {
+        public AimingParams(double turretAngle, double hoodAngle, double flywheelRpm) {
             this.turretAngle = turretAngle;
             this.hoodAngle = hoodAngle;
             this.flywheelRpm = flywheelRpm;
         }
     }
+
+    public static double getTargetDistance() {return targetDistance;}
 
 }

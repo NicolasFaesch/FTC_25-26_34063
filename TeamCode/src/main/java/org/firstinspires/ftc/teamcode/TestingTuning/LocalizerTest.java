@@ -24,7 +24,7 @@ public class LocalizerTest extends OpMode {
 
     @Override
     public void init() {
-        drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap,new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0));
+        drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class LocalizerTest extends OpMode {
         }
 
         try {
-            drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, 1, drivetrainTeleOp.getPose());
+            drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, 1);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

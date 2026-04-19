@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotTeleOp;
+import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 import java.util.Locale;
@@ -35,8 +36,7 @@ public class ShooterPIDFTuning extends OpMode {
 
     @Override
     public void init() {
-        robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED, PoseStorage.currentPose
-                , gamepad1, gamepad2);
+        robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED);
 
     }
 
@@ -86,12 +86,9 @@ public class ShooterPIDFTuning extends OpMode {
         telemetry.addLine("");
 
         // Robot pose telemetry
-        if(!robotTeleOp.isUsingLimelight()) {
-            telemetry.addData("Pose (Odometry)", position);
-        } else {
-            telemetry.addData("Pose (Limelight)", position);
-        }
-        telemetry.addData("Distance", robotTeleOp.drivetrainTeleOp.getDistance());
+        telemetry.addData("Pose (Fused)", position);
+
+        telemetry.addData("Distance", DynamicAiming.getTargetDistance());
 
 
         telemetry.addLine("");

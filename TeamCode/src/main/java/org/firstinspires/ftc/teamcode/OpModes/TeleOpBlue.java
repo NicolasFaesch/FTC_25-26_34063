@@ -28,10 +28,7 @@ public class TeleOpBlue extends OpMode {
 
         robotTeleOp = new RobotTeleOp(
                 hardwareMap,
-                Robot.Alliance.BLUE,
-                savedPose,
-                gamepad1,
-                gamepad2
+                Robot.Alliance.BLUE
         );
     }
 

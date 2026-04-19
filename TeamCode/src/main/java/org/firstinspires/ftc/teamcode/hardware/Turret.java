@@ -1,0 +1,246 @@
+package org.firstinspires.ftc.teamcode.hardware;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+@Configurable
+public class Turret {
+
+    // Turret Angles
+    public static double TURRET_MIN_ANGLE = -170;  // in deg
+    public static double TURRET_MAX_ANGLE = 170; // in deg
+    public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
+    public static double TURRET_STORED_ANGLE = 0; // in deg
+
+    // Turret Servos Position PID Coefficients
+    public static double COARSE_KP = 0.0001;
+    public static double COARSE_KD = 0.0;
+
+    public static double FINE_KP = 0.000001;
+    public static double FINE_KD = 0.0;
+
+    public static double FINE_PID_THRESHOLD = 5.0; // angle deviation threshold for activation of fine PID
+
+    public static double ON_TARGET_THRESHOLD = 3; // max angle deviation for target check to be true
+
+    // Servo power limits
+    public static double SERVO_TRACKING_MAX_SPEED = 1.0;
+    public static double SERVO_STORED_MAX_SPEED = 0.5;
+
+    private static final double GEAR_RATIO_SERVO = 48.0/20.0;  // ratio between servos and intermediary gear
+    private static final double GEAR_RATIO_TURRET= 62.0/144.0;  // ratio between intermediary gear and turret
+
+    // State of the shooter system for external setting
+    public enum State {
+        IDLE,
+        STORED,
+        TRACKING
+    }
+
+    private State state;
+
+    private double targetAngleManual = (TURRET_MIN_ANGLE+TURRET_MAX_ANGLE)/2; // manual override angle
+
+    private boolean manualOverride = false;
+
+    private double turretAngle;
+    private double targetAngle;
+
+    private ElapsedTime timer = new ElapsedTime();
+    private double lastError = 0;
+
+    private CRServoImplEx servoLeft;
+    private CRServoImplEx servoRight;
+
+    private AxonEncoder axonEncoder;
+    private AS5600Driver magneticEncoder;
+
+    public double getFusedAngle(double fineAngle, double coarseAngle) {
+
+        // Calculate the rough turret position from the servo
+        double roughTurretAngle = coarseAngle / GEAR_RATIO_SERVO*GEAR_RATIO_TURRET;
+
+        // Determine which rotation "window" the fine encoder is in.
+        // The fine encoder completes a full 360 degrees every (360 / gearRatio)
+        // degrees of the pivot.
+        double windowSize = 360.0 * GEAR_RATIO_TURRET;
+        int rotationIndex = (int) Math.floor(roughTurretAngle / windowSize);
+
+        // Calculate the precise pivot angle
+        // We take the number of full windows passed + (fine angle / gear ratio)
+        double preciseAngle = (rotationIndex * windowSize) + (fineAngle * GEAR_RATIO_TURRET);
+
+        // Backlash/Desync Protection:
+        // If the Axon is near a transition point, it might report the wrong window.
+        // We check if our precise angle is wildly different from the coarse angle.
+        double diff = preciseAngle - roughTurretAngle;
+
+        // If the difference is more than half a window, we've likely
+        // picked the wrong rotationIndex due to backlash or noise.
+        if (diff > (windowSize / 2)) {
+            preciseAngle -= windowSize;
+        } else if (diff < -(windowSize / 2)) {
+            preciseAngle += windowSize;
+        }
+
+        return preciseAngle;
+    }
+
+    public Turret(HardwareMap hardwareMap) {
+        servoLeft = hardwareMap.get(CRServoImplEx.class, "turret left");
+        servoRight = hardwareMap.get(CRServoImplEx.class, "turret right");
+
+        axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
+        // TODO: implement encoder
+        //magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
+
+        setState(State.IDLE);
+        changeState(); // force set state for initial state
+    }
+
+
+    private void changeState() {
+        switch(state) {
+            case IDLE:
+                servoLeft.setPwmDisable();
+                servoRight.setPwmDisable();
+                break;
+            case STORED:
+            case TRACKING:
+                if(!servoLeft.isPwmEnabled())
+                    servoLeft.setPwmEnable();
+                if (servoRight.isPwmEnabled())
+                    servoRight.setPwmEnable();
+                break;
+        }
+    }
+
+    public void update(double targetAngle) {
+        this.targetAngle = targetAngle;
+        // TODO: add magnetic encoder
+        turretAngle = getFusedAngle(axonEncoder.getAngle()*GEAR_RATIO_SERVO, axonEncoder.getAngle());
+
+        if(state == State.IDLE) { // do nothing if idle
+            servoLeft.setPower(0);
+            servoRight.setPower(0);
+            return;
+        }
+
+        if(manualOverride)
+            this.targetAngle = targetAngleManual;
+
+        if (state==State.STORED)
+            this.targetAngle = TURRET_STORED_ANGLE;
+
+        // clip target angle inside valid range
+        this.targetAngle = Math.max(TURRET_MIN_ANGLE, Math.min(TURRET_MAX_ANGLE, targetAngle));
+
+        double error = targetAngle - turretAngle;
+        double dt = timer.seconds();
+        timer.reset(); // reset timer for the next loop
+
+        // Prevent divide by zero on first loop
+        double derivative = (dt > 0) ? (error - lastError) / dt : 0;
+        lastError = error;
+
+        // Dual PD Logic
+        double power = 0;
+        if (Math.abs(error) > FINE_PID_THRESHOLD) {
+            // Coarse Mode: Get there fast
+            power = (error * COARSE_KP) + (derivative * COARSE_KD);
+        } else {
+            // Fine Mode: Settle smoothly
+            power = (error * FINE_KP) + (derivative * FINE_KD);
+        }
+
+        // Speed Clamping
+        double maxSpeed = (state == State.STORED) ? SERVO_STORED_MAX_SPEED : SERVO_TRACKING_MAX_SPEED;
+        power = Math.max(-maxSpeed, Math.min(maxSpeed, power));
+
+        // Software Endstops (Anti-Wire-Rip)
+        // If we are at/past the min angle, AND the PID is trying to drive us further negative... STOP.
+        if (turretAngle <= TURRET_MIN_ANGLE && power < 0) {
+            power = 0;
+        }
+        // If we are at/past the max angle, AND the PID is trying to drive us further positive... STOP.
+        else if (turretAngle >= TURRET_MAX_ANGLE && power > 0) {
+            power = 0;
+        }
+
+        if(state == State.TRACKING) {
+            power *= SERVO_TRACKING_MAX_SPEED;
+        } else { // state == State.STORED
+            power *= SERVO_STORED_MAX_SPEED;
+        }
+
+
+        servoLeft.setPower(power);
+        servoRight.setPower(power);
+    }
+
+    public void setState(State state) {
+        if(state != this.state) {
+            this.state = state;
+
+            changeState();
+        }
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public boolean isOnTarget() {
+        return Math.abs(turretAngle - targetAngle) < ON_TARGET_THRESHOLD;
+    }
+
+
+    public void setManualOverride(boolean manualOverride) {
+        this.manualOverride = manualOverride;
+    }
+
+    public boolean getManualOverride() {
+        return manualOverride;
+    }
+
+
+    public void increaseManualTurretAngle() {
+        targetAngleManual += TURRET_ANGLE_STEP_SIZE;
+        if(targetAngleManual > TURRET_MAX_ANGLE) {
+            targetAngleManual = TURRET_MAX_ANGLE;
+        }
+    }
+
+    public void decreaseManualTurretAngle() {
+        targetAngleManual -= TURRET_ANGLE_STEP_SIZE;
+        if(targetAngleManual < TURRET_MIN_ANGLE) {
+            targetAngleManual = TURRET_MIN_ANGLE;
+        }
+    }
+
+    public double getTargetAngleManual() {return targetAngleManual;}
+
+    public double getTurretAngle() {
+        return turretAngle;
+    }
+
+    public double getTargetAngle() {
+        return targetAngle;
+    }
+
+    public void setMagneticEncoderZero() {
+        magneticEncoder.setZero();
+    }
+
+    public void setAxonEncoderZero() {
+        axonEncoder.setZero();
+    }
+
+    public double getAxonRawDegrees() {
+        return axonEncoder.getRawDegrees();
+    }
+
+
+}

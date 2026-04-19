@@ -25,26 +25,21 @@ import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 import java.util.Locale;
 
 
-public class RobotTeleOp extends Robot{
-
-    private static final double AIMING_MAX_HEADING_ERROR = 3;
-
-    //Possible adjustment per frame in radian.
-    private static final double autoAimHeadingAdjustment = 0.03;
+public class RobotTeleOp extends Robot {
 
     public DrivetrainTeleOp drivetrainTeleOp;
-
-    private Controller controller1, controller2;
 
     double previousTime = 0;
 
 
-    public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance, Pose2D startPose, Gamepad gamepad1, Gamepad gamepad2) {
+    public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance) {
         super(hardwareMap, alliance);
-        drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap,startPose);
-        drivetrainTeleOp.setTargetPose((alliance==Alliance.RED) ? PoseStorage.targetPoseRed :PoseStorage.targetPoseBlue);
+        drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap);
+        setDrivetrain(drivetrainTeleOp);
 
-        if(alliance == Alliance.RED) {
+        // TODO: set up auto parking poses
+        /*
+        if (alliance == Alliance.RED) {
             drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseRED);
             drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingRED);
         } else {
@@ -52,129 +47,80 @@ public class RobotTeleOp extends Robot{
             drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingBLUE);
         }
 
-        DynamicAiming.createLUTs();
-        DynamicAiming.setTargetPose(drivetrainTeleOp.getTargetPose());
+         */
 
-        controller1 = new Controller(gamepad1);
-        controller2 = new Controller(gamepad2);
     }
 
     public void update(double currentTime) throws Exception {
-        //Update pos.
-        myPos = drivetrainTeleOp.getPose();
-
-
-        double loopTime = currentTime-previousTime;
-        previousTime = currentTime;
-
-        //Slow driving speed while button hold.
-        if(controller1.getLeftTrigger() == Controller.ButtonState.PRESSED) {
-            drivetrainTeleOp.slowDrivetrain();
-        } else {
-            drivetrainTeleOp.normalDrivetrain();
-        }
-
-        if(controller1.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
+        // TODO: auto parking engagement
+        /*
+        if (gamepad1.dpadLeftWasPressed()) {
             setState(State.PARKING);
             drivetrainTeleOp.park();
         }
 
-        if(getState() != State.PARKING) {
+        if (getState() != State.PARKING) {
             drivetrainTeleOp.noParking();
         }
+        */
 
+        double drivingScalar = 1 - gamepad1.left_trigger;
+
+        drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y,
+                gamepad1.right_stick_x, drivingScalar);
+        super.update();
+
+        /*
         //Gamepad 2 adjusting
-        if(controller2.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.dpadLeftWasPressed()) {
             //shooter.adjustShooterSpeed(false);
             //PoseStorage.parkingCorrectionX += 0.03;
-        } else if(controller2.getdPadRight() == Controller.ButtonState.ON_PRESS) {
+        } else if (gamepad2.dpadRightWasPressed()) {
             //shooter.adjustShooterSpeed(true);
             //PoseStorage.parkingCorrectionX -= 0.03;
-        } else if(controller2.getdPadUp() == Controller.ButtonState.ON_PRESS) {
-            shooter.adjustHood(true,myPos);
+        } else if (gamepad2.dpadUpWasPressed()) {
+            shooter.adjustHood(true, myPos);
             //PoseStorage.parkingCorrectionY += 0.03;
-        } else if(controller2.getdPadDown() == Controller.ButtonState.ON_PRESS) {
-            shooter.adjustHood(false,myPos);
+        } else if (gamepad2.dpadDownWasPressed()) {
+            shooter.adjustHood(false, myPos);
             //PoseStorage.parkingCorrectionY -= 0.03;
         }
 
-        if(controller2.getLeftBumper() == Controller.ButtonState.ON_PRESS) {
-            drivetrainTeleOp.adjustAutoAimHeading(autoAimHeadingAdjustment,myPos);
-        } else if(controller2.getRightBumper() == Controller.ButtonState.ON_PRESS) {
-            drivetrainTeleOp.adjustAutoAimHeading((autoAimHeadingAdjustment*-1),myPos);
+
+        if (controller2.getLeftBumper() == Controller.ButtonState.ON_PRESS) {
+            drivetrainTeleOp.adjustAutoAimHeading(autoAimHeadingAdjustment, myPos);
+        } else if (controller2.getRightBumper() == Controller.ButtonState.ON_PRESS) {
+            drivetrainTeleOp.adjustAutoAimHeading((autoAimHeadingAdjustment * -1), myPos);
         }
 
-
         //Reset adjustment
-        if(controller2.getRightJoystickButton() == Controller.ButtonState.ON_PRESS || controller1.getRightJoystickButton() == Controller.ButtonState.ON_PRESS) {
+        if (controller2.getRightJoystickButton() == Controller.ButtonState.ON_PRESS || controller1.getRightJoystickButton() == Controller.ButtonState.ON_PRESS) {
             shooter.resetShooterSpeedAdjustment();
             shooter.resetHoodAdjustment();
             drivetrainTeleOp.resetAutoAimHeadingAdjustment();
         }
-
-
-
-        //drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-        //        controller1.getRightJoystickXValue(), loopTime, myPos);
-        super.update(drivetrainTeleOp.getPose());
-
-        controller1.update();
-        controller2.update();
-
-        /*
-        Pose2D limelightPose;
-        if(controller2.getLeftJoystickButton() == Controller.ButtonState.PRESSED) { // use MT1 for calib
-            limelightPose = getLimelightPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity(), false);
-        } else { // otherwise MT2
-            limelightPose = getLimelightPose(drivetrainTeleOp.getVelocityX(), drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity(), true);
-        }
-        if (isUsingLimelight()) {
-            drivetrainTeleOp.overridePose(limelightPose);
-        }
         */
-
-        boolean validShootingPose = drivetrainTeleOp.getDistance() >= ShooterLUT.minDistance;
-        validShootingPose &= PositionChecker.checkInZones(drivetrainTeleOp.getPose());
-        boolean validShootingState = true;//Math.abs(drivetrainTeleOp.getHeadingError()) <= AIMING_MAX_HEADING_ERROR;
-        //TODO: fix state
 
         switch (state) {
             case AIMING:
             case SHOOTING:
-                if(!validShootingPose) {
+                if (!validShootingPose) {
                     colorLED.setColor(ColorLED.Color.RED);
-                } else if (!validShootingState) {
+                } else if (!turretReady) {
                     colorLED.setColor(ColorLED.Color.ORANGE);
                 } else {
-                    colorLED.setColor((state == State.AIMING) ? ColorLED.Color.GREEN : ColorLED.Color.PURPLE);
+                    colorLED.setColor(blockerDisengaged ? ColorLED.Color.PURPLE : ColorLED.Color.GREEN);
                 }
                 break;
             default:
                 colorLED.setColor(ColorLED.Color.OFF);
         }
 
-        if(controller1.getLeftTriggerValue() > 0.5) { // TODO: remove hack
-            shooter.update(drivetrainTeleOp.getDistance(), validShootingPose && validShootingState,myPos);
-            drivetrainTeleOp.update(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-                    controller1.getRightJoystickXValue(), loopTime, myPos);
-        } else {
-            DynamicAiming.ShooterState targetingVals = DynamicAiming.calculateTargeting(
-                    drivetrainTeleOp.getPose().getX(DistanceUnit.METER), drivetrainTeleOp.getPose().getY(DistanceUnit.METER),
-                    drivetrainTeleOp.getPose().getHeading(AngleUnit.DEGREES), drivetrainTeleOp.getVelocityX(),
-                    drivetrainTeleOp.getVelocityY(), drivetrainTeleOp.getAngularVelocity()
-            );
-            shooter.dynamicAimingUpdate(targetingVals.hoodAngle, targetingVals.flywheelRpm, validShootingPose);
-            drivetrainTeleOp.updateDynamic(controller1.getLeftJoystickXValue(), controller1.getLeftJoystickYValue(),
-                    controller1.getRightJoystickXValue(), loopTime, myPos, Math.toDegrees(targetingVals.turretAngle));
-        }
-
-
-
-        if (controller1.getyButton() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad1.yWasPressed()) {
             setState(State.IDLE);
         }
 
-        if(controller1.getRightBumper() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad1.rightBumperWasPressed()) {
             if (state == State.INTAKING) {
                 setState(State.STORING);
             } else {
@@ -182,13 +128,13 @@ public class RobotTeleOp extends Robot{
             }
         }
 
-        if(controller1.getRightTrigger() == Controller.ButtonState.PRESSED) {
+        if (gamepad1.right_trigger > 0.1) {
             setState(State.OUTTAKING);
-        } else if (controller1.getRightTrigger() == Controller.ButtonState.ON_RELEASE) {
+        } else if (getState() == State.OUTTAKING) {
             setState(State.INTAKING);
         }
 
-        if (controller1.getLeftBumper() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad1.leftBumperWasPressed()) {
             if (state == State.AIMING || state == State.SHOOTING) {
                 setState(State.STORING);
             } else {
@@ -196,32 +142,31 @@ public class RobotTeleOp extends Robot{
             }
         }
 
-        if(controller1.getaButton() == Controller.ButtonState.PRESSED || controller1.getxButton() == Controller.ButtonState.PRESSED) {
-            setState(State.SHOOTING);
-        } else if (controller1.getaButton() == Controller.ButtonState.ON_RELEASE || controller1.getxButton() == Controller.ButtonState.ON_RELEASE) {
-            setState(State.AIMING);
+        if (gamepad1.aWasPressed() || gamepad1.xWasPressed()) { //TODO: improve by splitting button roles
+            if (state != State.SHOOTING) {
+                setState(State.SHOOTING);
+            } else {
+                setState(State.AIMING);
+            }
         }
 
-        // enable auto aim
-        drivetrainTeleOp.setAimingMode(state == State.AIMING || state == State.SHOOTING);
-
-        if(controller2.getdPadUp() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.dpadUpWasPressed()) {
             shooter.increaseManualHoodPos();
         }
 
-        if(controller2.getdPadDown() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.dpadDownWasPressed()) {
             shooter.decreaseManualHoodPos();
         }
 
-        if(controller2.getdPadRight() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.dpadRightWasPressed()) {
             shooter.increaseManualShooterVel();
         }
 
-        if(controller2.getdPadLeft() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.dpadLeftWasPressed()) {
             shooter.decreaseManualShooterVel();
         }
 
-        if (controller2.getaButton() == Controller.ButtonState.ON_PRESS) {
+        if (gamepad2.aWasPressed()) {
             shooter.setManualOverride(!shooter.getManualOverride());
         }
     }
@@ -251,24 +196,12 @@ public class RobotTeleOp extends Robot{
 
         // Pose
         panelsTelemetry.addLine("=== POSE ===");
-        if (!isUsingLimelight()) {
-            panelsTelemetry.addData("Odometry", position);
-        } else {
-            panelsTelemetry.addData("Limelight", position);
-        }
-        panelsTelemetry.addData("Distance", drivetrainTeleOp.getDistance());
-        panelsTelemetry.addData("Velocity X", drivetrainTeleOp.getVelocityX());
-        panelsTelemetry.addData("Velocity Y", drivetrainTeleOp.getVelocityY());
+        panelsTelemetry.addLine(position);
+        panelsTelemetry.addData("Distance", DynamicAiming.getTargetDistance());
 
         telemetry.addLine("=== POSE ===");
-        if (!isUsingLimelight()) {
-            telemetry.addData("Odometry", position);
-        } else {
-            telemetry.addData("Limelight", position);
-        }
-        telemetry.addData("Distance", drivetrainTeleOp.getDistance());
-        telemetry.addData("Velocity X", drivetrainTeleOp.getVelocityX());
-        telemetry.addData("Velocity Y", drivetrainTeleOp.getVelocityY());
+        telemetry.addLine(position);
+        telemetry.addData("Distance", DynamicAiming.getTargetDistance());
 
         // Shooter Info
         panelsTelemetry.addLine("=== SHOOTER ===");
@@ -293,20 +226,12 @@ public class RobotTeleOp extends Robot{
         }
         telemetry.addData("Current Velocity", shooter.getShooterVelocity());
 
-        telemetry.addLine("=== ADJUSTMENT ===");
-        telemetry.addData("HoodFarAdjustment", shooter.getHoodFarAdjustment());
-        telemetry.addData("HoodNearAdjustment", shooter.getHoodNearAdjustment());
-
-
-
         // Update PanelsTelemetry
         //drawPath();
         drawDebug(drivetrainTeleOp.getFollower());
         panelsTelemetry.update();
         telemetry.update();
     }
-
-
 
 
 }

@@ -1,15 +1,18 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+@Configurable
 public class Transfer {
 
-    private static final double INTAKING_POWER = 0.75;
-    private static final double OUTTAKING_POWER = -0.5;
-    private static final double STORING_POWER = 0.4;
-    private static final double FEEDING_POWER = 0.7;
+    public static double INTAKING_POWER = 0.75;
+    public static double OUTTAKING_POWER = -0.5;
+    public static double STORING_POWER = 0.4;
+    public static double DISENGAGING_POWER = -0.05;
+    public static double FEEDING_POWER = 0.7;
 
     public enum State {
         IDLE,
@@ -35,8 +38,6 @@ public class Transfer {
     public void setState(State state) {
         if(state != this.state) {
             this.state = state;
-
-            changeState();
         }
     }
 
@@ -44,7 +45,7 @@ public class Transfer {
         return state;
     }
 
-    private void changeState() {
+    public void update(boolean blockerDisengaged) {
         switch(state) {
             case IDLE:
                 transferMotor.setPower(0);
@@ -59,7 +60,7 @@ public class Transfer {
                 transferMotor.setPower(STORING_POWER);
                 break;
             case FEEDING:
-                transferMotor.setPower(FEEDING_POWER);
+                transferMotor.setPower(blockerDisengaged ? FEEDING_POWER : DISENGAGING_POWER);
                 break;
         }
     }
