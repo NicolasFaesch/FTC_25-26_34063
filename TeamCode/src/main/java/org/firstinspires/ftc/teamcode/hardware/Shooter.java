@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
 public class Shooter {
 
     // Hood Positions (for manual mode)
-    public static double HOOD_MIN_POSITION = 0.1;
-    public static double HOOD_MAX_POSITION = 0.975;
+    public static double HOOD_MIN_POSITION = 0.175;
+    public static double HOOD_MAX_POSITION = 0.8;
     public static double HOOD_STEP_SIZE = 0.025;
 
     // Blocker Positions & time
-    public static double BLOCKER_ENGAGED_POSITION = 0.0;
-    public static double BLOCKER_DISENGAGED_POSITION = 0.0;
+    public static double BLOCKER_ENGAGED_POSITION = 0.75;
+    public static double BLOCKER_DISENGAGED_POSITION = 0.5;
     public static long BLOCKER_TIME_MS = 100;
 
     // Shooter Velocity Params (in RPM)
@@ -109,7 +109,7 @@ public class Shooter {
         blocker = hardwareMap.get(Servo.class, "blocker");
 
         shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        shooterRight.setDirection(DcMotorEx.Direction.FORWARD);
+        shooterRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -155,7 +155,13 @@ public class Shooter {
     public void update(double hoodPos, double flywheelVelocity, boolean validShootingPose, boolean turretReady) {
         shooterTargetVelocity = flywheelVelocity;
         shooterVelocity = toRPM((shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
-        hood.setPosition(hoodPos);
+        if(manualOverride) {
+            hood.setPosition(hoodPositionManual);
+            shooterTargetVelocity = shooterTargetVelocityManual;
+        } else {
+            hood.setPosition(hoodPos);
+        }
+
         if(state == State.AIMING || state == State.SHOOTING) {
             setShooterTargetVelocity(shooterTargetVelocity);
             boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
@@ -181,11 +187,13 @@ public class Shooter {
         if(state == State.SHOOTING && readyToShoot) {
             if(blockerState == BlockerState.ENGAGED || blockerState == BlockerState.ENGAGING) {
                 blocker.setPosition(BLOCKER_DISENGAGED_POSITION);
+                blockerState = BlockerState.DISENGAGING;
                 blockerTimer.start();
             }
         } else {
             if(blockerState == BlockerState.DISENGAGED || blockerState == BlockerState.DISENGAGING) {
                 blocker.setPosition(BLOCKER_ENGAGED_POSITION);
+                blockerState = BlockerState.ENGAGING;
                 blockerTimer.start();
             }
         }

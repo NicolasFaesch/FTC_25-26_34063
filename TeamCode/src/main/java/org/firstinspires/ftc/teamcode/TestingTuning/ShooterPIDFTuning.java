@@ -36,7 +36,7 @@ public class ShooterPIDFTuning extends OpMode {
 
     @Override
     public void init() {
-        robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED);
+        robotTeleOp = new RobotTeleOp(hardwareMap, Robot.Alliance.RED, gamepad1, gamepad2);
 
     }
 

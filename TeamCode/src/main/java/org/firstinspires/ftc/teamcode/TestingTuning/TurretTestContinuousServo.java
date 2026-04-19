@@ -78,6 +78,7 @@ public class TurretTestContinuousServo extends OpMode {
         }
         telemetry.addData("Turret Angle", turret.getTurretAngle());
         telemetry.addData("Axon Raw Degrees", turret.getAxonRawDegrees());
+        telemetry.addData("Axon Voltage", turret.getAxonVoltage());
         telemetry.addLine("");
         telemetry.addData("Turret State", turret.getState());
         telemetry.addData("Turret On Target", turret.isOnTarget());

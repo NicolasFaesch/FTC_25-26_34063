@@ -19,7 +19,7 @@ public class DrivetrainTeleOp extends Drivetrain{
     private boolean parkingMode;
 
     public DrivetrainTeleOp(HardwareMap hardwareMap) {
-        super(hardwareMap, PoseStorage.currentPose);
+        super(hardwareMap, new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.RADIANS, 0));//PoseStorage.currentPose);
         follower.startTeleOpDrive(false);
         parkingMode = false;
     }

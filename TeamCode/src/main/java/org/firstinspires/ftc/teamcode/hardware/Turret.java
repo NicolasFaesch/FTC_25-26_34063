@@ -14,23 +14,28 @@ public class Turret {
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = 0; // in deg
 
+    // The minimum power for the axon servos to be able to move
+    public static double SERVO_DEADBAND_POWER = 0.075;
+    // Range in which the deadband power is not applied (deg)
+    public static double SERVO_DEADBAND_RANGE = 1.5;
+
     // Turret Servos Position PID Coefficients
-    public static double COARSE_KP = 0.0001;
-    public static double COARSE_KD = 0.0;
+    public static double COARSE_KP = 0.0025;
+    public static double COARSE_KD = 0.0003;
 
-    public static double FINE_KP = 0.000001;
-    public static double FINE_KD = 0.0;
+    public static double FINE_KP = 0.003;
+    public static double FINE_KD = 0.00025;
 
-    public static double FINE_PID_THRESHOLD = 5.0; // angle deviation threshold for activation of fine PID
+    public static double FINE_PID_THRESHOLD = 10.0; // angle deviation threshold for activation of fine PID
 
-    public static double ON_TARGET_THRESHOLD = 3; // max angle deviation for target check to be true
+    public static double ON_TARGET_THRESHOLD = 0.5; // max angle deviation for target check to be true
 
     // Servo power limits
     public static double SERVO_TRACKING_MAX_SPEED = 1.0;
     public static double SERVO_STORED_MAX_SPEED = 0.5;
 
     private static final double GEAR_RATIO_SERVO = 48.0/20.0;  // ratio between servos and intermediary gear
-    private static final double GEAR_RATIO_TURRET= 62.0/144.0;  // ratio between intermediary gear and turret
+    private static final double GEAR_RATIO_TURRET= 60.0/144.0;  // ratio between intermediary gear and turret
 
     // State of the shooter system for external setting
     public enum State {
@@ -59,32 +64,28 @@ public class Turret {
 
     public double getFusedAngle(double fineAngle, double coarseAngle) {
 
-        // Calculate the rough turret position from the servo
-        double roughTurretAngle = coarseAngle / GEAR_RATIO_SERVO*GEAR_RATIO_TURRET;
+        // 1. Walk the angle from the servo, through the gears, to the turret.
+        double roughTurretAngle = coarseAngle * (GEAR_RATIO_SERVO * GEAR_RATIO_TURRET);
 
-        // Determine which rotation "window" the fine encoder is in.
-        // The fine encoder completes a full 360 degrees every (360 / gearRatio)
-        // degrees of the pivot.
+        // 2. The Window Size
         double windowSize = 360.0 * GEAR_RATIO_TURRET;
         int rotationIndex = (int) Math.floor(roughTurretAngle / windowSize);
 
-        // Calculate the precise pivot angle
-        // We take the number of full windows passed + (fine angle / gear ratio)
+        // 3. The Precise Angle
+        // Scale the fine angle down to the turret frame
         double preciseAngle = (rotationIndex * windowSize) + (fineAngle * GEAR_RATIO_TURRET);
 
-        // Backlash/Desync Protection:
-        // If the Axon is near a transition point, it might report the wrong window.
-        // We check if our precise angle is wildly different from the coarse angle.
+        // 4. Backlash/Desync Protection
         double diff = preciseAngle - roughTurretAngle;
 
-        // If the difference is more than half a window, we've likely
-        // picked the wrong rotationIndex due to backlash or noise.
-        if (diff > (windowSize / 2)) {
+        if (diff > (windowSize / 2.0)) {
             preciseAngle -= windowSize;
-        } else if (diff < -(windowSize / 2)) {
+        } else if (diff < -(windowSize / 2.0)) {
             preciseAngle += windowSize;
         }
 
+        if(preciseAngle > 180)
+            preciseAngle -= 360;
         return preciseAngle;
     }
 
@@ -120,7 +121,7 @@ public class Turret {
     public void update(double targetAngle) {
         this.targetAngle = targetAngle;
         // TODO: add magnetic encoder
-        turretAngle = getFusedAngle(axonEncoder.getAngle()*GEAR_RATIO_SERVO, axonEncoder.getAngle());
+        turretAngle = getFusedAngle((axonEncoder.getAngle()*GEAR_RATIO_SERVO)%360, axonEncoder.getAngle());
 
         if(state == State.IDLE) { // do nothing if idle
             servoLeft.setPower(0);
@@ -155,6 +156,17 @@ public class Turret {
             power = (error * FINE_KP) + (derivative * FINE_KD);
         }
 
+        if (!isOnTarget()) {
+            // Instantly skip the deadzone so the servo is always awake
+            double basePower = Math.signum(error) * SERVO_DEADBAND_POWER;
+
+            if(Math.abs(error) > SERVO_DEADBAND_RANGE)
+                power += Math.signum(error) * SERVO_DEADBAND_POWER;
+        } else {
+            // When on target, send 0 to let it relax/free-spin
+            power = 0;
+        }
+
         // Speed Clamping
         double maxSpeed = (state == State.STORED) ? SERVO_STORED_MAX_SPEED : SERVO_TRACKING_MAX_SPEED;
         power = Math.max(-maxSpeed, Math.min(maxSpeed, power));
@@ -168,13 +180,6 @@ public class Turret {
         else if (turretAngle >= TURRET_MAX_ANGLE && power > 0) {
             power = 0;
         }
-
-        if(state == State.TRACKING) {
-            power *= SERVO_TRACKING_MAX_SPEED;
-        } else { // state == State.STORED
-            power *= SERVO_STORED_MAX_SPEED;
-        }
-
 
         servoLeft.setPower(power);
         servoRight.setPower(power);
@@ -240,6 +245,10 @@ public class Turret {
 
     public double getAxonRawDegrees() {
         return axonEncoder.getRawDegrees();
+    }
+
+    public double getAxonVoltage() {
+        return axonEncoder.getVoltage();
     }
 
 

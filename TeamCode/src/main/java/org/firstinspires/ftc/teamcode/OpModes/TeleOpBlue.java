@@ -21,14 +21,11 @@ public class TeleOpBlue extends OpMode {
 
     @Override
     public void init() {
-        Pose2D savedPose = PoseFile.readPose();
-
-        if(savedPose == null)
-            savedPose = PoseStorage.currentPose;
-
         robotTeleOp = new RobotTeleOp(
                 hardwareMap,
-                Robot.Alliance.BLUE
+                Robot.Alliance.BLUE,
+                gamepad1,
+                gamepad2
         );
     }
 

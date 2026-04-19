@@ -30,12 +30,16 @@ public class RobotTeleOp extends Robot {
     public DrivetrainTeleOp drivetrainTeleOp;
 
     double previousTime = 0;
+    Gamepad gamepad1, gamepad2;
 
 
-    public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance) {
+    public RobotTeleOp(HardwareMap hardwareMap, Alliance alliance, Gamepad gamepad1, Gamepad gamepad2) {
         super(hardwareMap, alliance);
         drivetrainTeleOp = new DrivetrainTeleOp(hardwareMap);
         setDrivetrain(drivetrainTeleOp);
+
+        this.gamepad1 = gamepad1;
+        this.gamepad2 = gamepad2;
 
         // TODO: set up auto parking poses
         /*

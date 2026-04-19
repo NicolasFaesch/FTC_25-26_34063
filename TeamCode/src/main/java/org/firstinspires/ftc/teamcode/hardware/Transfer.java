@@ -3,16 +3,17 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Configurable
 public class Transfer {
 
-    public static double INTAKING_POWER = 0.75;
+    public static double INTAKING_POWER = -0.1;
     public static double OUTTAKING_POWER = -0.5;
-    public static double STORING_POWER = 0.4;
-    public static double DISENGAGING_POWER = -0.05;
-    public static double FEEDING_POWER = 0.7;
+    public static double STORING_POWER = -0.1;
+    public static double DISENGAGING_POWER = -0.5;
+    public static double FEEDING_POWER = 1.0;
 
     public enum State {
         IDLE,
@@ -31,7 +32,7 @@ public class Transfer {
 
         transferMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         transferMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        transferMotor.setDirection(DcMotorEx.Direction.FORWARD);
 
         setState(State.IDLE);
     }

@@ -74,12 +74,12 @@ public class Robot {
 
         intake.update(blockerDisengaged);
         transfer.update(blockerDisengaged);
-        turret.update(aimingParams.turretAngle);
+        turret.update(0);//aimingParams.turretAngle);
 
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         turretReady = turret.isOnTarget();
 
-        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, turretReady);
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, true, true);//validShootingPose, turretReady);
     }
 
 

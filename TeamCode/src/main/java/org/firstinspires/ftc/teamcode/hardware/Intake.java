@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 @Configurable
 public class Intake {
@@ -11,7 +12,7 @@ public class Intake {
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.4;
     public static double DISENGAGING_POWER = 0.0;
-    public static double FEEDING_POWER = 0.8;
+    public static double FEEDING_POWER = 1.0;
 
     public enum State {
         IDLE,
