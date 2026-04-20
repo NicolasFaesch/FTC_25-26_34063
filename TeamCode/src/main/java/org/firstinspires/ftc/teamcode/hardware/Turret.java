@@ -3,17 +3,19 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Configurable
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -170;  // in deg
-    public static double TURRET_MAX_ANGLE = 170; // in deg
+    public static double TURRET_MIN_ANGLE = -90;  // in deg
+    public static double TURRET_MAX_ANGLE = 120; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = 0; // in deg
 
+    /*
     // The minimum power for the axon servos to be able to move
     public static double SERVO_DEADBAND_POWER = 0.075;
     // Range in which the deadband power is not applied (deg)
@@ -28,11 +30,18 @@ public class Turret {
 
     public static double FINE_PID_THRESHOLD = 10.0; // angle deviation threshold for activation of fine PID
 
-    public static double ON_TARGET_THRESHOLD = 0.5; // max angle deviation for target check to be true
-
     // Servo power limits
     public static double SERVO_TRACKING_MAX_SPEED = 1.0;
     public static double SERVO_STORED_MAX_SPEED = 0.5;
+
+    private ElapsedTime timer = new ElapsedTime();
+    private double lastError = 0;
+     */
+    private static final double SERVO_RANGE_DEGREES = 350;
+    public static double LEFT_SERVO_ZERO_DEG_POSITION = 0.5;
+    public static double RIGHT_SERVO_ZERO_DEG_POSITION = 0.5;
+
+    public static double ON_TARGET_THRESHOLD = 3; // max angle deviation for target check to be true
 
     private static final double GEAR_RATIO_SERVO = 48.0/20.0;  // ratio between servos and intermediary gear
     private static final double GEAR_RATIO_TURRET= 60.0/144.0;  // ratio between intermediary gear and turret
@@ -46,18 +55,17 @@ public class Turret {
 
     private State state;
 
-    private double targetAngleManual = (TURRET_MIN_ANGLE+TURRET_MAX_ANGLE)/2; // manual override angle
+    private double targetAngleManual = TURRET_STORED_ANGLE; // manual override angle
 
     private boolean manualOverride = false;
 
     private double turretAngle;
     private double targetAngle;
 
-    private ElapsedTime timer = new ElapsedTime();
-    private double lastError = 0;
 
-    private CRServoImplEx servoLeft;
-    private CRServoImplEx servoRight;
+
+    private ServoImplEx servoLeft;
+    private ServoImplEx servoRight;
 
     private AxonEncoder axonEncoder;
     private AS5600Driver magneticEncoder;
@@ -90,8 +98,8 @@ public class Turret {
     }
 
     public Turret(HardwareMap hardwareMap) {
-        servoLeft = hardwareMap.get(CRServoImplEx.class, "turret left");
-        servoRight = hardwareMap.get(CRServoImplEx.class, "turret right");
+        servoLeft = hardwareMap.get(ServoImplEx.class, "turret left");
+        servoRight = hardwareMap.get(ServoImplEx.class, "turret right");
 
         axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
         // TODO: implement encoder
@@ -124,8 +132,8 @@ public class Turret {
         turretAngle = getFusedAngle((axonEncoder.getAngle()*GEAR_RATIO_SERVO)%360, axonEncoder.getAngle());
 
         if(state == State.IDLE) { // do nothing if idle
-            servoLeft.setPower(0);
-            servoRight.setPower(0);
+            // servoLeft.setPower(0);
+            // servoRight.setPower(0);
             return;
         }
 
@@ -138,6 +146,7 @@ public class Turret {
         // clip target angle inside valid range
         this.targetAngle = Math.max(TURRET_MIN_ANGLE, Math.min(TURRET_MAX_ANGLE, targetAngle));
 
+        /*
         double error = targetAngle - turretAngle;
         double dt = timer.seconds();
         timer.reset(); // reset timer for the next loop
@@ -183,6 +192,32 @@ public class Turret {
 
         servoLeft.setPower(power);
         servoRight.setPower(power);
+         */
+        // 1. Calculate the required servo angle to reach the turret target.
+        // Dividing by the total gear ratio moves us from the turret's frame back to the servo's frame.
+        double totalGearRatio = GEAR_RATIO_SERVO * GEAR_RATIO_TURRET;
+        double servoTargetAngle = this.targetAngle / totalGearRatio;
+
+        // 2. Convert the degrees into the 0.0 - 1.0 position scale.
+        // A 1-degree turn is equal to (1 / 350) in positional units.
+        double positionDelta = servoTargetAngle / SERVO_RANGE_DEGREES;
+
+        // 3. Apply the delta to your calibrated zero positions.
+        double leftPosition = LEFT_SERVO_ZERO_DEG_POSITION + positionDelta;
+
+        // Note: If your right servo is physically flipped and you DID NOT use
+        // servoRight.setDirection(Servo.Direction.REVERSE) in your hardware map,
+        // you will need to change this '+' to a '-' so it moves in the opposite direction.
+        double rightPosition = RIGHT_SERVO_ZERO_DEG_POSITION + positionDelta;
+
+        // 4. Safely clamp the positions between 0.0 and 1.0.
+        // (Sending a position outside this range will crash the REV Control Hub)
+        leftPosition = Math.max(0.0, Math.min(1.0, leftPosition));
+        rightPosition = Math.max(0.0, Math.min(1.0, rightPosition));
+
+        // 5. Command the servos to move!
+        servoLeft.setPosition(leftPosition);
+        servoRight.setPosition(rightPosition);
     }
 
     public void setState(State state) {

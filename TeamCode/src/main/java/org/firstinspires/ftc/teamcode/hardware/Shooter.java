@@ -28,7 +28,7 @@ public class Shooter {
     // Blocker Positions & time
     public static double BLOCKER_ENGAGED_POSITION = 0.75;
     public static double BLOCKER_DISENGAGED_POSITION = 0.5;
-    public static long BLOCKER_TIME_MS = 100;
+    public static long BLOCKER_TIME_MS = 50;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
@@ -38,9 +38,9 @@ public class Shooter {
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
-    public static double SHOOTER_KP = 80.0;
+    public static double SHOOTER_KP = 150.0;
     public static double SHOOTER_KI = 0.0;
-    public static double SHOOTER_KD = 30.0;
+    public static double SHOOTER_KD = 60.0;
     public static double SHOOTER_KV = 12.0;
 
     // motor parameters (DON'T CHANGE)

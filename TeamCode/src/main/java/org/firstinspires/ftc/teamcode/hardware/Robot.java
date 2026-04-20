@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
 
+import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -74,12 +75,12 @@ public class Robot {
 
         intake.update(blockerDisengaged);
         transfer.update(blockerDisengaged);
-        turret.update(0);//aimingParams.turretAngle);
+        turret.update(-aimingParams.turretAngle); // turret is inverted
 
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         turretReady = turret.isOnTarget();
 
-        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, true, true);//validShootingPose, turretReady);
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, true);//turretReady);
     }
 
 
@@ -98,7 +99,7 @@ public class Robot {
                     shooter.setShooterMotorIdlingMode(Shooter.ShooterMotorIdlingState.OFF);
                     intake.setState(Intake.State.INTAKING);
                     transfer.setState(Transfer.State.INTAKING);
-                    turret.setState(Turret.State.IDLE);
+                    turret.setState(Turret.State.TRACKING);
                     shooter.setState(Shooter.State.IDLE);
                     break;
                 case OUTTAKING:

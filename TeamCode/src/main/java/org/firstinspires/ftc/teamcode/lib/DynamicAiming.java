@@ -65,12 +65,12 @@ public class DynamicAiming {
         // Extract robot pose
         double robotX = robotPose.getX(DistanceUnit.METER);
         double robotY = robotPose.getY(DistanceUnit.METER);
-        double robotHeading = robotPose.getHeading(AngleUnit.DEGREES);
+        double robotHeading = robotPose.getHeading(AngleUnit.RADIANS);
 
         // Filter the Odometry Velocities (Low-Pass EMA Filter)
         filteredVx = (kVelFilter * odomVx) + ((1.0 - kVelFilter) * filteredVx);
         filteredVy = (kVelFilter * odomVy) + ((1.0 - kVelFilter) * filteredVy);
-        filteredVOmega = (kVelFilter * odomVOmega) + ((1.0 - kVelFilter) * filteredVOmega);
+        filteredVOmega = (kVelFilter * Math.toRadians(odomVOmega)) + ((1.0 - kVelFilter) * filteredVOmega);
 
         // Calculate Initial Distance to get Time of Flight (ToF)
         double dx = targetX - robotX;
@@ -103,7 +103,7 @@ public class DynamicAiming {
         // Final commanded turret angle (Robot-centric)
         double commandedTurretAngle = wrapAngle(fieldHeadingToVt - futureRobotHeading);
 
-        return new AimingParams(commandedTurretAngle, commandedHoodPos, commandedRPM);
+        return new AimingParams(Math.toDegrees(commandedTurretAngle), commandedHoodPos, commandedRPM);
     }
 
     /**

@@ -213,22 +213,34 @@ public class RobotTeleOp extends Robot {
             panelsTelemetry.addLine("Shooter: MANUAL OVERRIDE");
             panelsTelemetry.addData("Hood Position (manual)", shooter.getHoodPositionManual());
             panelsTelemetry.addData("Target Velocity (manual)", shooter.getShooterTargetVelocityManual());
+            panelsTelemetry.addData("Current Velocity", shooter.getShooterVelocity());
+            panelsTelemetry.addData("Target Angle (manual)", turret.getTargetAngleManual());
+            panelsTelemetry.addData("Turret Angle", turret.getTurretAngle());
         } else {
             panelsTelemetry.addData("Hood Position", shooter.getHoodPosition());
             panelsTelemetry.addData("Target Velocity", shooter.getShooterTargetVelocity());
+            panelsTelemetry.addData("Current Velocity", shooter.getShooterVelocity());
+            panelsTelemetry.addData("Target Angle", turret.getTargetAngle());
+            panelsTelemetry.addData("Turret Angle", turret.getTurretAngle());
         }
-        panelsTelemetry.addData("Current Velocity", shooter.getShooterVelocity());
+
 
         telemetry.addLine("=== SHOOTER ===");
         if (shooter.getManualOverride()) {
             telemetry.addLine("Shooter: MANUAL OVERRIDE");
             telemetry.addData("Hood Position (manual)", shooter.getHoodPositionManual());
             telemetry.addData("Target Velocity (manual)", shooter.getShooterTargetVelocityManual());
+            telemetry.addData("Current Velocity", shooter.getShooterVelocity());
+            telemetry.addData("Target Angle (manual)", turret.getTargetAngleManual());
+            telemetry.addData("Turret Angle", turret.getTurretAngle());
         } else {
             telemetry.addData("Hood Position", shooter.getHoodPosition());
             telemetry.addData("Target Velocity", shooter.getShooterTargetVelocity());
+            telemetry.addData("Current Velocity", shooter.getShooterVelocity());
+            telemetry.addData("Target Angle", turret.getTargetAngle());
+            telemetry.addData("Turret Angle", turret.getTurretAngle());
         }
-        telemetry.addData("Current Velocity", shooter.getShooterVelocity());
+
 
         // Update PanelsTelemetry
         //drawPath();
