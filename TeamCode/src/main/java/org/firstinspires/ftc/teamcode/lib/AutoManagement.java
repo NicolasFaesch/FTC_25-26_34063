@@ -354,7 +354,7 @@ public class AutoManagement {
                         nextTask(); // Task komplett fertig
                     }
                 }
-                if (robotAuto.drivetrainAuto.immobile()) {
+                if (robotAuto.drivetrainAuto.isAtEnd()) {
                     nextTask();
                 }
                 break;

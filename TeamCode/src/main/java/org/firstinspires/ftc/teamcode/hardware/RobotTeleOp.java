@@ -16,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.lib.AutoPoses;
 import org.firstinspires.ftc.teamcode.lib.Controller;
 import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
@@ -41,37 +42,34 @@ public class RobotTeleOp extends Robot {
         this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
 
-        // TODO: set up auto parking poses
-        /*
-        if (alliance == Alliance.RED) {
-            drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseRED);
-            drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingRED);
-        } else {
-            drivetrainTeleOp.setParkingPose(PoseStorage.parkingPoseBLUE);
-            drivetrainTeleOp.setParkingHeading(PoseStorage.parkingHeadingBLUE);
-        }
-
-         */
-
+        AutoPoses.alliance = this.alliance == Alliance.RED ? AutoPoses.Alliance.RED : AutoPoses.Alliance.BLUE;
+        drivetrainTeleOp.setParkingPose(AutoPoses.parkingPoseTele.getPose(), AutoPoses.parkingPoseTeleControlPoint.getPose());
+        drivetrainTeleOp.setGatePose(AutoPoses.gateIntaking.getPose(), AutoPoses.gateIntakingControlPoint.getPose());
     }
 
     public void update(double currentTime) throws Exception {
-        // TODO: auto parking engagement
-        /*
-        if (gamepad1.dpadLeftWasPressed()) {
-            setState(State.PARKING);
-            drivetrainTeleOp.park();
+        if(gamepad1.left_trigger >= 0.5) {
+            if(gamepad1.bWasPressed()) {
+                drivetrainTeleOp.autoDriveToGate();
+                setState(State.INTAKING);
+            }
+            if(gamepad1.aWasPressed()) {
+                drivetrainTeleOp.autoDriveToPark();
+                setState(State.PARKING);
+            }
         }
 
-        if (getState() != State.PARKING) {
-            drivetrainTeleOp.noParking();
-        }
-        */
-
-        double drivingScalar = 1 - gamepad1.left_trigger;
+        if(gamepad1.dpadDownWasPressed())
+            drivetrainTeleOp.changeParkingPoseX(true);
+        if(gamepad1.dpadUpWasPressed())
+            drivetrainTeleOp.changeParkingPoseX(false);
+        if(gamepad1.dpadLeftWasPressed())
+            drivetrainTeleOp.changeParkingPoseY(false);
+        if(gamepad1.dpadRightWasPressed())
+            drivetrainTeleOp.changeParkingPoseY(true);
 
         drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y,
-                gamepad1.right_stick_x, drivingScalar);
+                gamepad1.right_stick_x);
         super.update();
 
         /*
@@ -122,6 +120,7 @@ public class RobotTeleOp extends Robot {
 
         if (gamepad1.yWasPressed()) {
             setState(State.IDLE);
+            drivetrainTeleOp.setParkingMode(false);
         }
 
         if (gamepad1.rightBumperWasPressed()) {
@@ -139,6 +138,14 @@ public class RobotTeleOp extends Robot {
         }
 
         if (gamepad1.leftBumperWasPressed()) {
+            if (state != State.SHOOTING) {
+                setState(State.SHOOTING);
+            } else {
+                setState(State.AIMING);
+            }
+        }
+
+        if (gamepad1.xWasPressed()) {
             if (state == State.AIMING || state == State.SHOOTING) {
                 setState(State.STORING);
             } else {
@@ -146,11 +153,10 @@ public class RobotTeleOp extends Robot {
             }
         }
 
-        if (gamepad1.aWasPressed() || gamepad1.xWasPressed()) { //TODO: improve by splitting button roles
-            if (state != State.SHOOTING) {
-                setState(State.SHOOTING);
-            } else {
-                setState(State.AIMING);
+        if(gamepad1.aWasPressed()) {
+            if(state != State.PARKING) {
+                setState(State.PARKING);
+                drivetrainTeleOp.setParkingMode(true);
             }
         }
 
@@ -191,12 +197,14 @@ public class RobotTeleOp extends Robot {
         panelsTelemetry.addData("Intake State", intake.getState());
         panelsTelemetry.addData("Transfer State", transfer.getState());
         panelsTelemetry.addData("Shooter State", shooter.getState());
+        panelsTelemetry.addData("Turret State", turret.getState());
 
         telemetry.addLine("=== ROBOT STATES ===");
         telemetry.addData("Robot State", getState());
         telemetry.addData("Intake State", intake.getState());
         telemetry.addData("Transfer State", transfer.getState());
         telemetry.addData("Shooter State", shooter.getState());
+        telemetry.addData("Turret State", turret.getState());
 
         // Pose
         panelsTelemetry.addLine("=== POSE ===");

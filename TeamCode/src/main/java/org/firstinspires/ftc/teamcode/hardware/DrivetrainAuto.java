@@ -16,34 +16,14 @@ import java.util.concurrent.TimeUnit;
 
 public class DrivetrainAuto extends Drivetrain {
 
-    private final double movementTol = 1; //in INCH^2
-    private final double stoppedMeasurementInterval = 1500;  //in MS
-    private Pose2D lastPose = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
-    //CHANGE BACK TO PRIVATE maybe
-    public Timing.Timer timer = new Timing.Timer(9999999, TimeUnit.MILLISECONDS);
-    private boolean isStoped = false;
+
 
     public DrivetrainAuto(HardwareMap hardwareMap, Pose2D startPose) {
         super(hardwareMap, startPose);
-        timer.start();
     }
 
     public void update() {
         follower.update();
-        //500 in MS
-        if(timer.elapsedTime() >= stoppedMeasurementInterval) {
-            Pose2D currentPose = this.getPose();
-            //relies on early termination to protect from null values
-            if (lastPose != null && Math.pow((currentPose.getX(DistanceUnit.INCH) - lastPose.getX(DistanceUnit.INCH)), 2)
-                    + Math.pow((currentPose.getY(DistanceUnit.INCH) - lastPose.getY(DistanceUnit.INCH)),2)
-                    < movementTol) {
-                isStoped = true;
-            } else {
-                isStoped = false;
-            }
-            lastPose = currentPose;
-            timer.start();
-        }
     }
 
     public boolean isFollowerBusy() {
@@ -64,10 +44,6 @@ public class DrivetrainAuto extends Drivetrain {
 
     public void followPathAndHold(Path path) {
         follower.followPath(path, true);
-    }
-
-    public boolean immobile() {
-        return isStoped;
     }
 
     public void followPathChain(PathChain pathChain) {

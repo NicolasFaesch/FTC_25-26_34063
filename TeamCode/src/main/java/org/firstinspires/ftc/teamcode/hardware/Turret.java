@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -90;  // in deg
-    public static double TURRET_MAX_ANGLE = 120; // in deg
+    public static double TURRET_MIN_ANGLE = -80;  // in deg
+    public static double TURRET_MAX_ANGLE = 110; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = 0; // in deg
 
@@ -41,7 +41,7 @@ public class Turret {
     public static double LEFT_SERVO_ZERO_DEG_POSITION = 0.5;
     public static double RIGHT_SERVO_ZERO_DEG_POSITION = 0.5;
 
-    public static double ON_TARGET_THRESHOLD = 3; // max angle deviation for target check to be true
+    public static double ON_TARGET_THRESHOLD = 5; // max angle deviation for target check to be true
 
     private static final double GEAR_RATIO_SERVO = 48.0/20.0;  // ratio between servos and intermediary gear
     private static final double GEAR_RATIO_TURRET= 60.0/144.0;  // ratio between intermediary gear and turret
@@ -103,7 +103,7 @@ public class Turret {
 
         axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
         // TODO: implement encoder
-        //magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
+        magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
 
         setState(State.IDLE);
         changeState(); // force set state for initial state
@@ -120,7 +120,7 @@ public class Turret {
             case TRACKING:
                 if(!servoLeft.isPwmEnabled())
                     servoLeft.setPwmEnable();
-                if (servoRight.isPwmEnabled())
+                if (!servoRight.isPwmEnabled())
                     servoRight.setPwmEnable();
                 break;
         }
@@ -129,7 +129,7 @@ public class Turret {
     public void update(double targetAngle) {
         this.targetAngle = targetAngle;
         // TODO: add magnetic encoder
-        turretAngle = getFusedAngle((axonEncoder.getAngle()*GEAR_RATIO_SERVO)%360, axonEncoder.getAngle());
+        turretAngle = getFusedAngle(magneticEncoder.getAngle(), axonEncoder.getAngle());
 
         if(state == State.IDLE) { // do nothing if idle
             // servoLeft.setPower(0);
@@ -144,55 +144,8 @@ public class Turret {
             this.targetAngle = TURRET_STORED_ANGLE;
 
         // clip target angle inside valid range
-        this.targetAngle = Math.max(TURRET_MIN_ANGLE, Math.min(TURRET_MAX_ANGLE, targetAngle));
+        this.targetAngle = Math.max(TURRET_MIN_ANGLE, Math.min(TURRET_MAX_ANGLE, this.targetAngle));
 
-        /*
-        double error = targetAngle - turretAngle;
-        double dt = timer.seconds();
-        timer.reset(); // reset timer for the next loop
-
-        // Prevent divide by zero on first loop
-        double derivative = (dt > 0) ? (error - lastError) / dt : 0;
-        lastError = error;
-
-        // Dual PD Logic
-        double power = 0;
-        if (Math.abs(error) > FINE_PID_THRESHOLD) {
-            // Coarse Mode: Get there fast
-            power = (error * COARSE_KP) + (derivative * COARSE_KD);
-        } else {
-            // Fine Mode: Settle smoothly
-            power = (error * FINE_KP) + (derivative * FINE_KD);
-        }
-
-        if (!isOnTarget()) {
-            // Instantly skip the deadzone so the servo is always awake
-            double basePower = Math.signum(error) * SERVO_DEADBAND_POWER;
-
-            if(Math.abs(error) > SERVO_DEADBAND_RANGE)
-                power += Math.signum(error) * SERVO_DEADBAND_POWER;
-        } else {
-            // When on target, send 0 to let it relax/free-spin
-            power = 0;
-        }
-
-        // Speed Clamping
-        double maxSpeed = (state == State.STORED) ? SERVO_STORED_MAX_SPEED : SERVO_TRACKING_MAX_SPEED;
-        power = Math.max(-maxSpeed, Math.min(maxSpeed, power));
-
-        // Software Endstops (Anti-Wire-Rip)
-        // If we are at/past the min angle, AND the PID is trying to drive us further negative... STOP.
-        if (turretAngle <= TURRET_MIN_ANGLE && power < 0) {
-            power = 0;
-        }
-        // If we are at/past the max angle, AND the PID is trying to drive us further positive... STOP.
-        else if (turretAngle >= TURRET_MAX_ANGLE && power > 0) {
-            power = 0;
-        }
-
-        servoLeft.setPower(power);
-        servoRight.setPower(power);
-         */
         // 1. Calculate the required servo angle to reach the turret target.
         // Dividing by the total gear ratio moves us from the turret's frame back to the servo's frame.
         double totalGearRatio = GEAR_RATIO_SERVO * GEAR_RATIO_TURRET;
@@ -205,9 +158,6 @@ public class Turret {
         // 3. Apply the delta to your calibrated zero positions.
         double leftPosition = LEFT_SERVO_ZERO_DEG_POSITION + positionDelta;
 
-        // Note: If your right servo is physically flipped and you DID NOT use
-        // servoRight.setDirection(Servo.Direction.REVERSE) in your hardware map,
-        // you will need to change this '+' to a '-' so it moves in the opposite direction.
         double rightPosition = RIGHT_SERVO_ZERO_DEG_POSITION + positionDelta;
 
         // 4. Safely clamp the positions between 0.0 and 1.0.
@@ -233,7 +183,9 @@ public class Turret {
     }
 
     public boolean isOnTarget() {
-        return Math.abs(turretAngle - targetAngle) < ON_TARGET_THRESHOLD;
+        // TODO: add correct check
+        return (targetAngle < TURRET_MAX_ANGLE && targetAngle > TURRET_MIN_ANGLE);
+                //Math.abs(turretAngle - targetAngle) < ON_TARGET_THRESHOLD;
     }
 
 

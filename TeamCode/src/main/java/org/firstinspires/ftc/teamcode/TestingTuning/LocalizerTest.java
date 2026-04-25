@@ -34,7 +34,7 @@ public class LocalizerTest extends OpMode {
         }
 
         try {
-            drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, 1);
+            drivetrainTeleOp.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

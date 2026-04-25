@@ -86,5 +86,8 @@ public class AutoPoses {
 
     public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
     public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
+
+    public static AutoPose parkingPoseTele = new AutoPose(36, -36, 180);
+    public static AutoPose parkingPoseTeleControlPoint = new AutoPose(parkingPoseTele.x-20, parkingPoseTele.y, parkingPoseTele.h);
 }
 

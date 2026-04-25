@@ -4,7 +4,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class ColorLED {
-    private Servo led;
+    private Servo ledLeft;
+    private Servo ledRight;
 
     public enum Color {
         OFF,
@@ -17,9 +18,8 @@ public class ColorLED {
     }
 
     public ColorLED(HardwareMap hardwareMap) {
-        led = hardwareMap.get(Servo.class, "led");
-
-
+        ledLeft = hardwareMap.get(Servo.class, "led left");
+        ledRight = hardwareMap.get(Servo.class, "led right");
     }
 
     public void setColor(Color color) {
@@ -47,6 +47,7 @@ public class ColorLED {
                 colorValue = 1.0;
                 break;
         }
-        led.setPosition(colorValue);
+        ledLeft.setPosition(colorValue);
+        ledRight.setPosition(colorValue);
     }
 }

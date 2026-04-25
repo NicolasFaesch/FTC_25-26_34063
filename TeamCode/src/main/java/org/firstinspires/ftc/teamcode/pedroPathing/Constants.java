@@ -57,7 +57,7 @@ public class Constants {
             ;
 
     public static LimelightConstants limelightConstants = new LimelightConstants()
-            .pipeline(1)
+            .pipeline(0)
             .hardwareMapName("limelight")
             .mt1MaxDistanceInches(60)
             .mt1MaxVelocity(10)

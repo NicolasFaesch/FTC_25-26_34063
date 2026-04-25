@@ -26,15 +26,15 @@ public class Shooter {
     public static double HOOD_STEP_SIZE = 0.025;
 
     // Blocker Positions & time
-    public static double BLOCKER_ENGAGED_POSITION = 0.75;
-    public static double BLOCKER_DISENGAGED_POSITION = 0.5;
-    public static long BLOCKER_TIME_MS = 50;
+    public static double BLOCKER_ENGAGED_POSITION = 0.8;
+    public static double BLOCKER_DISENGAGED_POSITION = 0.475;
+    public static long BLOCKER_TIME_MS = 120;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 250; // threshold to decide if fast enough to shoot
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -81,8 +81,8 @@ public class Shooter {
 
     private boolean readyToShoot;
 
-    private DcMotorEx shooterRight;
-    private DcMotorEx shooterLeft;
+    private DcMotorEx shooterBottom;
+    private DcMotorEx shooterTop;
 
     private Servo hood;
     private Servo blocker;
@@ -102,20 +102,20 @@ public class Shooter {
 
 
     public Shooter(HardwareMap hardwareMap) {
-        shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
-        shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
+        shooterTop = hardwareMap.get(DcMotorEx.class, "shooter top");
+        shooterBottom = hardwareMap.get(DcMotorEx.class, "shooter bottom");
 
         hood = hardwareMap.get(Servo.class, "hood");
         blocker = hardwareMap.get(Servo.class, "blocker");
 
-        shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        shooterRight.setDirection(DcMotorEx.Direction.REVERSE);
+        shooterTop.setDirection(DcMotorEx.Direction.REVERSE);
+        shooterBottom.setDirection(DcMotorEx.Direction.REVERSE);
 
-        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shooterLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        shooterRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        shooterTop.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        shooterBottom.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
         hood.setPosition(hoodPosition);
         blocker.setPosition(BLOCKER_ENGAGED_POSITION);
@@ -136,12 +136,12 @@ public class Shooter {
                     blockerTimer.start();
                 }
                 if(shooterMotorIdlingState == ShooterMotorIdlingState.OFF) {
-                    shooterLeft.setPower(0);
-                    shooterRight.setPower(0);
+                    shooterTop.setPower(0);
+                    shooterBottom.setPower(0);
                     shooterMotorState = ShooterMotorState.OFF;
                 } else {
-                    shooterLeft.setVelocity(toTPS(SHOOTER_IDLE_VELOCITY));
-                    shooterRight.setVelocity(toTPS(SHOOTER_IDLE_VELOCITY));
+                    shooterTop.setVelocity(toTPS(SHOOTER_IDLE_VELOCITY));
+                    shooterBottom.setVelocity(toTPS(SHOOTER_IDLE_VELOCITY));
                     shooterMotorState = ShooterMotorState.IDLE;
                 }
                 break;
@@ -154,7 +154,7 @@ public class Shooter {
 
     public void update(double hoodPos, double flywheelVelocity, boolean validShootingPose, boolean turretReady) {
         shooterTargetVelocity = flywheelVelocity;
-        shooterVelocity = toRPM((shooterLeft.getVelocity() + shooterRight.getVelocity())/2);
+        shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2);
         if(manualOverride) {
             hood.setPosition(hoodPositionManual);
             shooterTargetVelocity = shooterTargetVelocityManual;
@@ -281,14 +281,14 @@ public class Shooter {
     }
 
     public void setShooterTargetVelocity(double shooterTargetVelocity) {
-        shooterLeft.setVelocity(toTPS(shooterTargetVelocity));
-        shooterRight.setVelocity(toTPS(shooterTargetVelocity));
+        shooterTop.setVelocity(toTPS(shooterTargetVelocity));
+        shooterBottom.setVelocity(toTPS(shooterTargetVelocity));
     }
 
     public void setShooterPIDFGains(double kP, double kI, double kD, double kV) {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, kI, kD, kV);
-        shooterLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        shooterRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        shooterTop.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        shooterBottom.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
     }
 
 }

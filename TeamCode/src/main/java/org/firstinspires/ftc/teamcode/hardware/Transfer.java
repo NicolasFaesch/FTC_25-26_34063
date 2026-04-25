@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @Configurable
 public class Transfer {
 
-    public static double INTAKING_POWER = 0.0;
+    public static double INTAKING_POWER = 0.5;
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.0;
     public static double DISENGAGING_POWER = -0.3;

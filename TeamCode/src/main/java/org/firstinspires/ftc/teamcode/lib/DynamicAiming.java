@@ -19,7 +19,7 @@ public class DynamicAiming {
     public static double kVelFilter = 1.0;
 
     // System lag in seconds (Turret servo settling time + barrel time)
-    public static double tLag = 0.12;
+    public static double tLag = 0.05;
 
     // Lateral drag multiplier (1.0 = vacuum, 0.7 = 30% drag reduction)
     public static double kDrag = 1.2;

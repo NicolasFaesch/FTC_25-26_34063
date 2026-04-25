@@ -80,6 +80,7 @@ public class Robot {
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         turretReady = turret.isOnTarget();
 
+        //TODO: add turret ready when encoder implemented
         shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, true);//turretReady);
     }
 

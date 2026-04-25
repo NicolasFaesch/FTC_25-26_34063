@@ -11,7 +11,7 @@ public class Intake {
     public static double INTAKING_POWER = 1.0;
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.3;
-    public static double DISENGAGING_POWER = 0.6;
+    public static double DISENGAGING_POWER = 0.4;
     public static double FEEDING_POWER = 1.0;
 
     public enum State {
