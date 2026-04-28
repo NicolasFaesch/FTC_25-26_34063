@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import androidx.annotation.NonNull;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -14,7 +15,11 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.math.Vector;
 
+@Configurable
 public class Drivetrain {
+    public static double MAX_TRANSLATIONAL_VELOCITY = 15; // in in/s
+    public static double MAX_ANGULAR_VELOCITY = 30; // in deg/s
+
     protected Follower follower;
 
     protected Drivetrain(HardwareMap hardwareMap, Pose2D startPose) {
@@ -61,6 +66,10 @@ public class Drivetrain {
         return meters/25.4*1000;
     }
 
+    public boolean isValidShootingVelocity() {
+        return Math.abs(follower.getVelocity().getMagnitude()) < MAX_TRANSLATIONAL_VELOCITY
+                && Math.toDegrees(Math.abs(follower.getAngularVelocity())) < MAX_ANGULAR_VELOCITY;
+    }
 
     public Follower getFollower() {return follower;}
 

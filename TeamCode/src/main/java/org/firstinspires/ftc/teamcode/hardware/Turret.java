@@ -10,38 +10,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -80;  // in deg
-    public static double TURRET_MAX_ANGLE = 110; // in deg
+    public static double TURRET_MIN_ANGLE = -150;  // in deg
+    public static double TURRET_MAX_ANGLE = 150; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = 0; // in deg
 
-    /*
-    // The minimum power for the axon servos to be able to move
-    public static double SERVO_DEADBAND_POWER = 0.075;
-    // Range in which the deadband power is not applied (deg)
-    public static double SERVO_DEADBAND_RANGE = 1.5;
-
-    // Turret Servos Position PID Coefficients
-    public static double COARSE_KP = 0.0025;
-    public static double COARSE_KD = 0.0003;
-
-    public static double FINE_KP = 0.003;
-    public static double FINE_KD = 0.00025;
-
-    public static double FINE_PID_THRESHOLD = 10.0; // angle deviation threshold for activation of fine PID
-
-    // Servo power limits
-    public static double SERVO_TRACKING_MAX_SPEED = 1.0;
-    public static double SERVO_STORED_MAX_SPEED = 0.5;
-
-    private ElapsedTime timer = new ElapsedTime();
-    private double lastError = 0;
-     */
     private static final double SERVO_RANGE_DEGREES = 350;
     public static double LEFT_SERVO_ZERO_DEG_POSITION = 0.5;
     public static double RIGHT_SERVO_ZERO_DEG_POSITION = 0.5;
 
-    public static double ON_TARGET_THRESHOLD = 5; // max angle deviation for target check to be true
+    public static double ON_TARGET_THRESHOLD = 10; // max angle deviation for target check to be true
 
     private static final double GEAR_RATIO_SERVO = 48.0/20.0;  // ratio between servos and intermediary gear
     private static final double GEAR_RATIO_TURRET= 60.0/144.0;  // ratio between intermediary gear and turret
@@ -61,8 +39,6 @@ public class Turret {
 
     private double turretAngle;
     private double targetAngle;
-
-
 
     private ServoImplEx servoLeft;
     private ServoImplEx servoRight;
@@ -102,7 +78,6 @@ public class Turret {
         servoRight = hardwareMap.get(ServoImplEx.class, "turret right");
 
         axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
-        // TODO: implement encoder
         magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
 
         setState(State.IDLE);
@@ -183,7 +158,7 @@ public class Turret {
     }
 
     public boolean isOnTarget() {
-        // TODO: add correct check
+        // TODO: add correct check once angle value is good
         return (targetAngle < TURRET_MAX_ANGLE && targetAngle > TURRET_MIN_ANGLE);
                 //Math.abs(turretAngle - targetAngle) < ON_TARGET_THRESHOLD;
     }

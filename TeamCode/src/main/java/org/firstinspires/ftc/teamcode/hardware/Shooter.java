@@ -28,13 +28,13 @@ public class Shooter {
     // Blocker Positions & time
     public static double BLOCKER_ENGAGED_POSITION = 0.8;
     public static double BLOCKER_DISENGAGED_POSITION = 0.475;
-    public static long BLOCKER_TIME_MS = 120;
+    public static long BLOCKER_TIME_MS = 70;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 250; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -88,7 +88,7 @@ public class Shooter {
     private Servo blocker;
 
     private double hoodPositionManual = (HOOD_MAX_POSITION+HOOD_MIN_POSITION)/2; // manual set hood position
-    private double shooterTargetVelocityManual = (SHOOTER_MAX_VELOCITY + SHOOTER_MIN_VELOCITY)/2; // manual override velocity
+    private double shooterTargetVelocityManual = 2500; // manual override velocity
 
     private double hoodPosition = (HOOD_MIN_POSITION + HOOD_MAX_POSITION)/2; // hood position as calculated by LUT
     private double shooterTargetVelocity; // shooter velocity as calculated by LUT
@@ -152,9 +152,9 @@ public class Shooter {
         }
     }
 
-    public void update(double hoodPos, double flywheelVelocity, boolean validShootingPose, boolean turretReady) {
-        shooterTargetVelocity = flywheelVelocity;
-        shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2);
+    public void update(double hoodPos, double flywheelTargetVelocity, boolean validShootingPose, boolean validShootingState) {
+        shooterTargetVelocity = flywheelTargetVelocity;
+        shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2*GEAR_RATIO);
         if(manualOverride) {
             hood.setPosition(hoodPositionManual);
             shooterTargetVelocity = shooterTargetVelocityManual;
@@ -163,8 +163,13 @@ public class Shooter {
         }
 
         if(state == State.AIMING || state == State.SHOOTING) {
-            setShooterTargetVelocity(shooterTargetVelocity);
-            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;
+            setShooterTargetVelocity(shooterTargetVelocity + SHOOTER_VELOCITY_THRESHOLD/2); // set shooter speed slightly higher to account for consecutive shots
+            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;;
+
+            // extra requirement to reach target velocity when first shooting
+            if(blockerState == BlockerState.ENGAGED) {
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity;
+            }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;
             } else {
@@ -172,7 +177,7 @@ public class Shooter {
             }
         }
 
-        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && turretReady;
+        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && validShootingState;
 
         // update blocker state
         if(blockerState == BlockerState.DISENGAGING && blockerTimer.done()) {
@@ -273,7 +278,7 @@ public class Shooter {
     }
 
     private double toTPS(double velocityRPM) { // encoder Ticks Per Second. Raw value for motor
-        return velocityRPM * MOTOR_CPR / 60.0 * GEAR_RATIO;
+        return velocityRPM * MOTOR_CPR / 60.0 / GEAR_RATIO;
     }
 
     public double getShooterVelocity() {

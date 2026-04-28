@@ -121,11 +121,13 @@ public class DrivetrainTeleOp extends Drivetrain{
         setAutoDrive(true);
         setParkingMode(true);
         Path path = new Path(new BezierCurve(getCurrentPose(), parkingControlPoint, parkingPose));
+        path.setConstantHeadingInterpolation(parkingPose.getHeading());
         follower.followPath(path, true);
     }
 
     public void updateParkingTrack() {
         Path path = new Path(new BezierLine(getCurrentPose(), parkingPose));
+        path.setConstantHeadingInterpolation(parkingPose.getHeading());
         follower.followPath(path, true);
     }
 

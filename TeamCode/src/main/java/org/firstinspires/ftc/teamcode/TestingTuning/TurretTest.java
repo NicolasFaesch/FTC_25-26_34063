@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.TestingTuning;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.hardware.AxonEncoder;
 import org.firstinspires.ftc.teamcode.hardware.Turret;
 
-@Disabled
-@TeleOp(name="Turret Test - Continuous Servo")
-public class TurretTestContinuousServo extends OpMode {
+@TeleOp(name="Turret Test")
+public class TurretTest extends OpMode {
 
     Turret turret;
     double targetAngle = 0;
@@ -24,8 +21,7 @@ public class TurretTestContinuousServo extends OpMode {
         // set zeros when aligned to front
         if (gamepad1.leftStickButtonWasPressed() && gamepad1.rightStickButtonWasPressed()) {
             turret.setAxonEncoderZero();
-            //TODO: implement
-            //turret.setMagneticEncoderZero();
+            turret.setMagneticEncoderZero();
         }
 
         if (gamepad1.aWasPressed())

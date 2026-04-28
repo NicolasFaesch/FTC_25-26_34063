@@ -1,14 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
-
-import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.lib.Controller;
 import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
 import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 import org.firstinspires.ftc.teamcode.lib.PositionChecker;
@@ -41,8 +34,8 @@ public class Robot {
     protected Alliance alliance;
 
     protected boolean validShootingPose;
-    protected boolean turretReady;
-    protected boolean blockerDisengaged;
+    protected boolean validShootingState;
+    protected boolean blockerChanging;
 
 
     public Robot(HardwareMap hardwareMap, Alliance alliance) {
@@ -55,8 +48,8 @@ public class Robot {
         this.alliance = alliance;
 
         validShootingPose = false;
-        turretReady = false;
-        blockerDisengaged = false;
+        validShootingState = false;
+        blockerChanging = false;
 
         DynamicAiming.setTargetPose(this.alliance == Alliance.RED ? PoseStorage.targetPoseRed : PoseStorage.targetPoseBlue);
         DynamicAiming.createLUTs();
@@ -70,18 +63,17 @@ public class Robot {
     }
 
     protected void update() {
-        blockerDisengaged = shooter.getBlockerState() == Shooter.BlockerState.DISENGAGED;
+        blockerChanging = shooter.getBlockerState() == Shooter.BlockerState.DISENGAGING || shooter.getBlockerState() == Shooter.BlockerState.ENGAGING;
         DynamicAiming.AimingParams aimingParams = DynamicAiming.calculateTargeting(drivetrain.getPose(), drivetrain.getVelocityX(), drivetrain.getVelocityY(), drivetrain.getAngularVelocity());
 
-        intake.update(blockerDisengaged);
-        transfer.update(blockerDisengaged);
+        intake.update(blockerChanging);
+        transfer.update(blockerChanging);
         turret.update(-aimingParams.turretAngle); // turret is inverted
 
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
-        turretReady = turret.isOnTarget();
+        validShootingState = turret.isOnTarget() && drivetrain.isValidShootingVelocity();
 
-        //TODO: add turret ready when encoder implemented
-        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, true);//turretReady);
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState);
     }
 
 

@@ -1,14 +1,9 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad2;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawDebug;
 import static org.firstinspires.ftc.teamcode.lib.Drawing.drawRobot;
 
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -17,11 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.AutoPoses;
-import org.firstinspires.ftc.teamcode.lib.Controller;
 import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
-import org.firstinspires.ftc.teamcode.lib.PoseStorage;
-import org.firstinspires.ftc.teamcode.lib.PositionChecker;
-import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 
 import java.util.Locale;
 
@@ -47,7 +38,7 @@ public class RobotTeleOp extends Robot {
         drivetrainTeleOp.setGatePose(AutoPoses.gateIntaking.getPose(), AutoPoses.gateIntakingControlPoint.getPose());
     }
 
-    public void update(double currentTime) throws Exception {
+    public void update() {
         if(gamepad1.left_trigger >= 0.5) {
             if(gamepad1.bWasPressed()) {
                 drivetrainTeleOp.autoDriveToGate();
@@ -108,12 +99,14 @@ public class RobotTeleOp extends Robot {
             case SHOOTING:
                 if (!validShootingPose) {
                     colorLED.setColor(ColorLED.Color.RED);
-                } else if (!turretReady) {
+                } else if (!validShootingState) {
                     colorLED.setColor(ColorLED.Color.ORANGE);
                 } else {
-                    colorLED.setColor(blockerDisengaged ? ColorLED.Color.PURPLE : ColorLED.Color.GREEN);
+                    colorLED.setColor(blockerChanging ? ColorLED.Color.PURPLE : ColorLED.Color.GREEN);
                 }
                 break;
+            case PARKING:
+                colorLED.setColor(ColorLED.Color.WHITE);
             default:
                 colorLED.setColor(ColorLED.Color.OFF);
         }

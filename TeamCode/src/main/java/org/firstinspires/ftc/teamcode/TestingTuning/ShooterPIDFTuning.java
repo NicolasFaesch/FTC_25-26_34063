@@ -64,7 +64,7 @@ public class ShooterPIDFTuning extends OpMode {
         previousTime = newTime;
 
         try {
-            robotTeleOp.update(loopTime);
+            robotTeleOp.update();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -39,7 +39,7 @@ public class AutoPoses {
     // RED Alliance
 
     // Start
-    public static AutoPose startPoseClose = new AutoPose(-49, 48, 129);
+    public static AutoPose startPoseClose = new AutoPose(-49, 48, 0);
     public static AutoPose startPoseFar   = new AutoPose(68, 19, -180);
 
     // Intake BEFORE (xBefore, yBefore, h)
@@ -53,9 +53,9 @@ public class AutoPoses {
     public static AutoPose intakingFarAfter    = new AutoPose(35, 49, 90);
 
     // Shooting
-    public static AutoPose shootClose = new AutoPose(-19, 22.5, 136);
+    public static AutoPose shootClose = new AutoPose(-19, 22.5, 30);
 
-    public static AutoPose shootFar   = new AutoPose(59.3, 14.2, 157.4);
+    public static AutoPose shootFar   = new AutoPose(59.3, 14.2, -180);
 
     // Optional (nicht in alten Config aktiv genutzt)
     public static AutoPose shootClosePark = new AutoPose(-45, 19.2, 115.4);

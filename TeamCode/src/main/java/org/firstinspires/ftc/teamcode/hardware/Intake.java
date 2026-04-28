@@ -12,7 +12,7 @@ public class Intake {
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.3;
     public static double DISENGAGING_POWER = 0.4;
-    public static double FEEDING_POWER = 1.0;
+    public static double FEEDING_POWER = 0.8;
 
     public enum State {
         IDLE,
@@ -45,7 +45,7 @@ public class Intake {
         return state;
     }
 
-    public void update(boolean blockerDisengaged) {
+    public void update(boolean blockerChanging) {
         switch(state) {
             case IDLE:
                 intakeMotor.setPower(0);
@@ -60,7 +60,7 @@ public class Intake {
                 intakeMotor.setPower(STORING_POWER);
                 break;
             case FEEDING:
-                intakeMotor.setPower(blockerDisengaged ? FEEDING_POWER : DISENGAGING_POWER);
+                intakeMotor.setPower(blockerChanging ? DISENGAGING_POWER : FEEDING_POWER);
                 break;
         }
     }

@@ -48,7 +48,7 @@ public class TeleOpRed extends OpMode {
         }
 
         try {
-            robotTeleOp.update(getRuntime());
+            robotTeleOp.update();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -7,6 +7,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.DrivetrainTeleOp;
 import org.firstinspires.ftc.teamcode.lib.Controller;
 
+@Disabled
 @TeleOp(name = "Localizer Test", group = "Test")
 public class LocalizerTest extends OpMode {
     private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();

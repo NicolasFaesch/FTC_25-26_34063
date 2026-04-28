@@ -31,7 +31,6 @@ public class AutoManagement {
     private final FieldManager panelsField;
 
 
-
     // ----------------------------------------------------
     // ENUMS
     // ----------------------------------------------------
@@ -69,7 +68,7 @@ public class AutoManagement {
         boolean autoClose;
 
         Key(Objective previousObjective, Task currentTask, Objective currentObjective, boolean autoClose) {
-            if(currentTask == Task.INTAKING) {
+            if (currentTask == Task.INTAKING) {
                 this.previousObjective = null;
             } else {
                 this.previousObjective = previousObjective;
@@ -115,6 +114,8 @@ public class AutoManagement {
 
     private Timing.Timer gateReleasingTimer = new Timing.Timer(AutoConstants.GATE_RELEASING_TIME, TimeUnit.MILLISECONDS);
     private Timing.Timer gateIntakingTimer = new Timing.Timer(AutoConstants.GATE_INTAKING_TIME, TimeUnit.MILLISECONDS);
+    private Timing.Timer shootingTimer = new Timing.Timer(AutoConstants.SHOOTING_TIME, TimeUnit.MILLISECONDS);
+    private Timing.Timer intakeClearingTimer = new Timing.Timer(AutoConstants.INTAKE_CLEARING_TIME, TimeUnit.MILLISECONDS);
 
     // ----------------------------------------------------
     // CONSTRUCTOR
@@ -246,29 +247,31 @@ public class AutoManagement {
         // set robot state for task
         switch (currentTask) {
 
+            case DRIVE:
             case DRIVE_TO_INTAKE:
-                robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
+                robotAuto.colorLED.setColor(ColorLED.Color.WHITE);
                 robotAuto.setState(Robot.State.IDLE);
                 executeCurrentPath();
                 break;
-            case DRIVE:
             case DRIVE_TO_SHOOT:
-                robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
-                robotAuto.setState(Robot.State.STORING);
+                robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
+                robotAuto.setState(Robot.State.OUTTAKING);
                 executeCurrentPath();
+                intakeClearingTimer.start();
                 break;
             case INTAKING:
-                robotAuto.colorLED.setColor(ColorLED.Color.PURPLE);
+                robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
                 robotAuto.setState(Robot.State.INTAKING);
                 executeCurrentPath();
                 break;
             case SHOOTING:
-                robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
+                robotAuto.colorLED.setColor(ColorLED.Color.PURPLE);
                 robotAuto.setState(Robot.State.SHOOTING);
+                //if(previousObjective != )
                 break;
             case WAITING:
                 robotAuto.colorLED.setColor(ColorLED.Color.ORANGE);
-                if(currentObjective == Objective.GATE_RELEASING) {
+                if (currentObjective == Objective.GATE_RELEASING) {
                     gateReleasingTimer.start();
                     robotAuto.setState(Robot.State.IDLE);
                 } else if (currentObjective == Objective.GATE_INTAKING) {
@@ -333,12 +336,29 @@ public class AutoManagement {
             return;
 
         switch (currentTask) {
-
+            case DRIVE_TO_SHOOT:
+                if (robotAuto.getState() == Robot.State.OUTTAKING) {
+                    if (intakeClearingTimer.done()) {
+                        robotAuto.setState(Robot.State.INTAKING);
+                        intakeClearingTimer.start();
+                    }
+                } else if(robotAuto.getState() == Robot.State.INTAKING){
+                    if (intakeClearingTimer.done()) {
+                        shootingTimer.start();
+                        robotAuto.setState(Robot.State.SHOOTING);
+                    }
+                } else {
+                    if (!robotAuto.shooter.getReadyToShoot()) {
+                        shootingTimer.pause();
+                    } else if (!shootingTimer.isTimerOn()) {
+                        shootingTimer.resume();
+                    }
+                }
             case DRIVE:
             case DRIVE_TO_INTAKE:
-            case DRIVE_TO_SHOOT:
             case INTAKING:
 
+                /*
                 if (robotAuto.drivetrainAuto.isAtEnd()) {
 
                     Key key = new Key(previousObjective, currentTask, currentObjective, autoClose);
@@ -354,21 +374,25 @@ public class AutoManagement {
                         nextTask(); // Task komplett fertig
                     }
                 }
+                */
                 if (robotAuto.drivetrainAuto.isAtEnd()) {
                     nextTask();
                 }
                 break;
             case SHOOTING:
-                // TODO: different method to count balls sho
-                //if (robotAuto.getBallsShot() >= 3)
+                if (!robotAuto.shooter.getReadyToShoot()) {
+                    shootingTimer.pause();
+                } else if (!shootingTimer.isTimerOn()) {
+                    shootingTimer.resume();
+                }
+                if (shootingTimer.done())
                     nextTask();
                 break;
             case WAITING:
-                if(currentObjective == Objective.GATE_RELEASING)
-                {
+                if (currentObjective == Objective.GATE_RELEASING) {
                     if (gateReleasingTimer.done()) // timer completed
                         nextTask();
-                } else if(currentObjective == Objective.GATE_INTAKING) {
+                } else if (currentObjective == Objective.GATE_INTAKING) {
                     if (gateIntakingTimer.done()) // timer completed
                         nextTask();
                 } else {
@@ -400,13 +424,13 @@ public class AutoManagement {
         // =====================================================
 
         // SPIKE_MARK_CLOSE
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
                 List.of(AutoPaths.startCloseToIntakingClose));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
                 List.of(AutoPaths.shootCloseToIntakingClose));
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
                 List.of(AutoPaths.startFarToIntakingClose));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, false),
                 List.of(AutoPaths.shootFarToIntakingClose));
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_CLOSE, true),
                 List.of(AutoPaths.gateReleasingToIntakingClose));
@@ -414,13 +438,13 @@ public class AutoManagement {
                 List.of(AutoPaths.gateReleasingToIntakingClose));
 
         // SPIKE_MARK_MIDDLE
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
                 List.of(AutoPaths.startCloseToIntakingMiddle));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
                 List.of(AutoPaths.shootCloseToIntakingMiddle));
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
                 List.of(AutoPaths.startFarToIntakingMiddle));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, false),
                 List.of(AutoPaths.shootFarToIntakingMiddle));
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_MIDDLE, true),
                 List.of(AutoPaths.gateReleasingToIntakingMiddle));
@@ -428,13 +452,13 @@ public class AutoManagement {
                 List.of(AutoPaths.gateReleasingToIntakingMiddle));
 
         // SPIKE_MARK_FAR
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
                 List.of(AutoPaths.startCloseToIntakingFar));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
                 List.of(AutoPaths.shootCloseToIntakingFar));
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
                 List.of(AutoPaths.startFarToIntakingFar));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, false),
                 List.of(AutoPaths.shootFarToIntakingFar));
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.SPIKE_MARK_FAR, true),
                 List.of(AutoPaths.gateReleasingToIntakingFar));
@@ -442,23 +466,23 @@ public class AutoManagement {
                 List.of(AutoPaths.gateReleasingToIntakingFar));
 
         // GATE_INTAKING
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE, Objective.GATE_INTAKING, true),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, true),
                 List.of(AutoPaths.startCloseToGateIntaking));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE, Objective.GATE_INTAKING, true),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_INTAKING, true),
                 List.of(AutoPaths.shootCloseToGateIntaking));
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE, Objective.GATE_INTAKING, false),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, false),
                 List.of(AutoPaths.startFarToGateIntaking));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE, Objective.GATE_INTAKING, false),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_INTAKING, false),
                 List.of(AutoPaths.shootFarToGateIntaking));
 
         // LOADING_ZONE
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
                 List.of(AutoPaths.startCloseToLoadingZone));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
                 List.of(AutoPaths.shootCloseToLoadingZone));
-        pathMap.put(new Key(Objective.SHOOT_START,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
+        pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
                 List.of(AutoPaths.startFarToLoadingZone));
-        pathMap.put(new Key(Objective.SHOOT,Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
+        pathMap.put(new Key(Objective.SHOOT, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, false),
                 List.of(AutoPaths.shootFarToLoadingZone));
         pathMap.put(new Key(Objective.GATE_RELEASING, Task.DRIVE_TO_INTAKE, Objective.LOADING_ZONE, true),
                 List.of(AutoPaths.gateReleasingToLoadingZone));
@@ -548,7 +572,6 @@ public class AutoManagement {
         //pathMap.put(new Key(Objective.SHOOTING_START, Task.SHOOTING, Task.DRIVE_TO_SHOOT, Objective.PARK, true), List.of(AutoPaths.startCloseToShootCloseParked));
 
 
-
         // Intaking to Gate Releasing
         pathMap.put(new Key(Objective.SPIKE_MARK_CLOSE, Task.DRIVE, Objective.GATE_RELEASING, true), List.of(AutoPaths.intakingCloseToGateReleasing));
         pathMap.put(new Key(Objective.SPIKE_MARK_MIDDLE, Task.DRIVE, Objective.GATE_RELEASING, true), List.of(AutoPaths.intakingMiddleToGateReleasing));
@@ -566,7 +589,8 @@ public class AutoManagement {
         panelsTelemetry.addLine("=== Task ===");
         panelsTelemetry.addData("current Objective", currentObjective);
         panelsTelemetry.addData("currentTask", currentTask);
-        if (previousObjective != null) panelsTelemetry.addData("previousObjective", previousObjective);
+        if (previousObjective != null)
+            panelsTelemetry.addData("previousObjective", previousObjective);
 
         telemetry.addLine("=== Task ===");
         telemetry.addData("current Objective", currentObjective);

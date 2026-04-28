@@ -82,6 +82,10 @@ public class AS5600Driver extends I2cDeviceSynchDevice<I2cDeviceSynchSimple> {
         return "READY";
     }
 
+    public double getOffsetDegrees() {
+        return this.offsetDegrees;
+    }
+
     @Override public Manufacturer getManufacturer() { return Manufacturer.Other; }
     @Override public String getDeviceName() { return "AS5600 Magnetic Encoder"; }
 }

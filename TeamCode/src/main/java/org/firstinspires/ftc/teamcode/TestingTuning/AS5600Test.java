@@ -33,6 +33,7 @@ public class AS5600Test extends OpMode {
         }
         telemetry.addData("Raw Degrees", magneticEncoder.getRawDegrees());
         telemetry.addData("Angle", magneticEncoder.getAngle());
+        telemetry.addData("Zero offset", magneticEncoder.getOffsetDegrees());
         telemetry.update();
     }
 }
