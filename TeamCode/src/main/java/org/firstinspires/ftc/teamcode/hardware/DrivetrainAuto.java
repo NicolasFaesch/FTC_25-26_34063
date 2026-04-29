@@ -23,7 +23,7 @@ public class DrivetrainAuto extends Drivetrain {
     }
 
     public void update() {
-        follower.update();
+        super.update();
     }
 
     public boolean isFollowerBusy() {

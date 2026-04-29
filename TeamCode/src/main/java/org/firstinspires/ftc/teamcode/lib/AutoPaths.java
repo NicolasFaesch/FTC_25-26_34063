@@ -196,7 +196,7 @@ public class AutoPaths {
 
         // Objective To Shooting Close
         intakingCloseToShootClose = createBezierLine(AutoPoses.intakingCloseAfter, AutoPoses.shootClose);
-        intakingMiddleToShootClose = createBezierLine(AutoPoses.intakingMiddleAfter, AutoPoses.shootClose);
+        intakingMiddleToShootClose = createBezierCurve(AutoPoses.intakingMiddleAfter, AutoPoses.gateIntakingToShooterCloseControlPoint ,AutoPoses.shootClose);
         intakingFarToShootClose = createBezierLine(AutoPoses.intakingFarAfter, AutoPoses.shootClose);
         gateReleasingToShootClose = createBezierCurve(AutoPoses.gateReleasing, AutoPoses.CP2, AutoPoses.shootClose);
         gateIntakingToShootClose = createBezierCurve(AutoPoses.gateIntaking, AutoPoses.gateIntakingToShooterCloseControlPoint, AutoPoses.shootClose);

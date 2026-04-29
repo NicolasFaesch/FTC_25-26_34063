@@ -43,14 +43,14 @@ public class AutoPoses {
     public static AutoPose startPoseFar   = new AutoPose(68, 19, -180);
 
     // Intake BEFORE (xBefore, yBefore, h)
-    public static AutoPose intakingCloseBefore  = new AutoPose(-14, 25, 90);
+    public static AutoPose intakingCloseBefore  = new AutoPose(-13.5, 25, 90);
     public static AutoPose intakingMiddleBefore = new AutoPose(12, 25, 90);
-    public static AutoPose intakingFarBefore    = new AutoPose(35, 25, 90);
+    public static AutoPose intakingFarBefore    = new AutoPose(36, 25, 90);
 
     // Intake AFTER (xAfter, yAfter, h)
-    public static AutoPose intakingCloseAfter  = new AutoPose(-14, 49, 90);
-    public static AutoPose intakingMiddleAfter = new AutoPose(12, 49, 90);
-    public static AutoPose intakingFarAfter    = new AutoPose(35, 49, 90);
+    public static AutoPose intakingCloseAfter  = new AutoPose(-13.5, 50, 90);
+    public static AutoPose intakingMiddleAfter = new AutoPose(12, 50, 90);
+    public static AutoPose intakingFarAfter    = new AutoPose(36, 50, 90);
 
     // Shooting
     public static AutoPose shootClose = new AutoPose(-19, 22.5, 30);
@@ -69,7 +69,7 @@ public class AutoPoses {
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(14, 56.5, 120);
+    public static AutoPose gateIntaking     = new AutoPose(13.5, 56.5, 120);
     public static AutoPose gateIntakingControlPoint = new AutoPose(12, 20, 128);
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
 
@@ -81,13 +81,13 @@ public class AutoPoses {
     public static AutoPose loadingZoneAfter  = new AutoPose(53, 57, 90); // TODO: pose setzten naja*/
 
 
-    public static AutoPose loadingZoneBefore = new AutoPose(64, 26, 80); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAfter  = new AutoPose(64, 54, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneBefore = new AutoPose(66, 40, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAfter  = new AutoPose(66, 57, 80); // TODO: pose setzten naja
 
     public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
     public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
 
-    public static AutoPose parkingPoseTele = new AutoPose(38, -38, 180);
+    public static AutoPose parkingPoseTele = new AutoPose(38, -37, 180);
     public static AutoPose parkingPoseTeleControlPoint = new AutoPose(parkingPoseTele.x-20, parkingPoseTele.y, parkingPoseTele.h);
 }
 
