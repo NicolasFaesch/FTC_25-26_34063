@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.lib.PinpointLimelightEKFLocal
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(8)
+            .mass(13.5)
             .forwardZeroPowerAcceleration(-45.0)
             .lateralZeroPowerAcceleration(-76.8)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.11, 0, 0.0075, 0.025))

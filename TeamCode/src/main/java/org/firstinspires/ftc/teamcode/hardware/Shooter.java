@@ -28,20 +28,20 @@ public class Shooter {
     // Blocker Positions & time
     public static double BLOCKER_ENGAGED_POSITION = 0.8;
     public static double BLOCKER_DISENGAGED_POSITION = 0.475;
-    public static long BLOCKER_TIME_MS = 70;
+    public static long BLOCKER_TIME_MS = 100;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 250; // threshold to decide if fast enough to shoot
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
-    public static double SHOOTER_KP = 150.0;
+    public static double SHOOTER_KP = 300.0;
     public static double SHOOTER_KI = 0.0;
     public static double SHOOTER_KD = 60.0;
-    public static double SHOOTER_KV = 12.0;
+    public static double SHOOTER_KV = 13.0;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution

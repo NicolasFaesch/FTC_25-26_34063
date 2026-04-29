@@ -94,6 +94,14 @@ public class RobotTeleOp extends Robot {
         }
         */
 
+        if(drivetrainTeleOp.getAutoDrive()) {
+            if (drivetrainTeleOp.follower.isBusy()) {
+                gamepad1.rumble(100);
+            } else {
+                gamepad1.stopRumble();
+            }
+        }
+
         switch (state) {
             case AIMING:
             case SHOOTING:
@@ -102,13 +110,15 @@ public class RobotTeleOp extends Robot {
                 } else if (!validShootingState) {
                     colorLED.setColor(ColorLED.Color.ORANGE);
                 } else {
-                    colorLED.setColor(blockerChanging ? ColorLED.Color.PURPLE : ColorLED.Color.GREEN);
+                    colorLED.setColor((shooter.getReadyToShoot() && state == State.SHOOTING) ? ColorLED.Color.PURPLE : ColorLED.Color.GREEN);
                 }
                 break;
             case PARKING:
                 colorLED.setColor(ColorLED.Color.WHITE);
+                break;
             default:
                 colorLED.setColor(ColorLED.Color.OFF);
+                break;
         }
 
         if (gamepad1.yWasPressed()) {
