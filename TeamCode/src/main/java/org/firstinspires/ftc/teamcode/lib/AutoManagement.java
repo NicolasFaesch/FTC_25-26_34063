@@ -220,7 +220,8 @@ public class AutoManagement {
                 break;
             case PARK:
                 //if (!autoClose)
-                taskList.add(Task.DRIVE);
+                if(previousObjective != Objective.SHOOT_END)
+                    taskList.add(Task.DRIVE);
                 taskList.add(Task.WAITING);
                 break;
             case NONE:

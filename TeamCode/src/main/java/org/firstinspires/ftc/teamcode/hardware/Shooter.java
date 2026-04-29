@@ -28,10 +28,10 @@ public class Shooter {
     // Blocker Positions & time
     public static double BLOCKER_ENGAGED_POSITION = 0.8;
     public static double BLOCKER_DISENGAGED_POSITION = 0.475;
-    public static long BLOCKER_TIME_MS = 100;
+    public static long BLOCKER_TIME_MS = 150;
 
     // Shooter Velocity Params (in RPM)
-    public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
+    public static double SHOOTER_MIN_VELOCITY = 3000; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
     public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot

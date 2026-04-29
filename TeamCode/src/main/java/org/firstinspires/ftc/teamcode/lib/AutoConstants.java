@@ -8,8 +8,8 @@ public class AutoConstants {
     public static double REGULAR_DRIVE_SPEED = 1.0;
     public static double GATE_BRAKE_STRENGTH = 0.3;
     public static double GATE_INTAKING_BRAKE_STRENGTH = 0.3;
-    public static long GATE_RELEASING_TIME = 1500;
+    public static long GATE_RELEASING_TIME = 1000;
     public static long GATE_INTAKING_TIME = 1500;
-    public static long SHOOTING_TIME = 700;
+    public static long SHOOTING_TIME = 750;
     public static long INTAKE_CLEARING_TIME = 50;
 }

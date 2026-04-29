@@ -17,8 +17,8 @@ import com.pedropathing.math.Vector;
 
 @Configurable
 public class Drivetrain {
-    public static double MAX_TRANSLATIONAL_VELOCITY = 30; // in in/s
-    public static double MAX_ANGULAR_VELOCITY = 15; // in deg/s
+    public static double MAX_TRANSLATIONAL_VELOCITY = 45; // in in/s
+    public static double MAX_ANGULAR_VELOCITY = 20; // in deg/s
 
     protected Follower follower;
 

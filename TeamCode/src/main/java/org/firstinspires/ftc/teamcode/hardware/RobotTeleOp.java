@@ -40,11 +40,11 @@ public class RobotTeleOp extends Robot {
 
     public void update() {
         if(gamepad1.left_trigger >= 0.5) {
-            if(gamepad1.bWasPressed()) {
+            if(gamepad1.aWasPressed()) {
                 drivetrainTeleOp.autoDriveToGate();
                 setState(State.INTAKING);
             }
-            if(gamepad1.aWasPressed()) {
+            if(gamepad1.bWasPressed()) {
                 drivetrainTeleOp.autoDriveToPark();
                 setState(State.PARKING);
             }
@@ -123,7 +123,6 @@ public class RobotTeleOp extends Robot {
 
         if (gamepad1.yWasPressed()) {
             setState(State.IDLE);
-            drivetrainTeleOp.setParkingMode(false);
         }
 
         if (gamepad1.rightBumperWasPressed()) {
@@ -156,12 +155,13 @@ public class RobotTeleOp extends Robot {
             }
         }
 
-        if(gamepad1.aWasPressed()) {
+        if(gamepad1.bWasPressed()) {
             if(state != State.PARKING) {
                 setState(State.PARKING);
                 drivetrainTeleOp.setParkingMode(true);
             }
-        }
+        } else if(drivetrainTeleOp.getParkingMode())
+            drivetrainTeleOp.setParkingMode(false);
 
         if (gamepad2.dpadUpWasPressed()) {
             shooter.increaseManualHoodPos();
