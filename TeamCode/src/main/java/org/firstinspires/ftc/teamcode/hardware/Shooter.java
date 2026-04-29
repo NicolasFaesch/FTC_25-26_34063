@@ -34,7 +34,7 @@ public class Shooter {
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 250; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
     public static double SHOOTER_IDLE_VELOCITY = 1500; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -163,12 +163,12 @@ public class Shooter {
         }
 
         if(state == State.AIMING || state == State.SHOOTING) {
-            setShooterTargetVelocity(shooterTargetVelocity + SHOOTER_VELOCITY_THRESHOLD/2); // set shooter speed slightly higher to account for consecutive shots
-            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;;
+            setShooterTargetVelocity(shooterTargetVelocity); // set shooter speed slightly higher to account for consecutive shots
+            boolean shooterToSpeed = Math.abs(shooterVelocity-(shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/4)) <= SHOOTER_VELOCITY_THRESHOLD;;
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {
-                shooterToSpeed &= shooterVelocity > shooterTargetVelocity;
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity - SHOOTER_VELOCITY_THRESHOLD/4;
             }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;

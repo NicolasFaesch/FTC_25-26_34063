@@ -69,8 +69,8 @@ public class AutoPoses {
     public static AutoPose gateReleasingControlPoint = new AutoPose(0, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(11, 58, 124);
-    public static AutoPose gateIntakingControlPoint = new AutoPose(0, 20, 90);
+    public static AutoPose gateIntaking     = new AutoPose(13.6, 58, 125);
+    public static AutoPose gateIntakingControlPoint = new AutoPose(12, 20, 128);
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
 
     /*
@@ -87,7 +87,7 @@ public class AutoPoses {
     public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
     public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
 
-    public static AutoPose parkingPoseTele = new AutoPose(36, -36, 180);
+    public static AutoPose parkingPoseTele = new AutoPose(36, -40, 180);
     public static AutoPose parkingPoseTeleControlPoint = new AutoPose(parkingPoseTele.x-20, parkingPoseTele.y, parkingPoseTele.h);
 }
 

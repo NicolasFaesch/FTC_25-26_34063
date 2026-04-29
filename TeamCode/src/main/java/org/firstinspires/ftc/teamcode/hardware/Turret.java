@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -160;  // in deg
+    public static double TURRET_MIN_ANGLE = -150;  // in deg
     public static double TURRET_MAX_ANGLE = 125; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
-    public static double TURRET_STORED_ANGLE = -160; // in deg
+    public static double TURRET_STORED_ANGLE = -150; // in deg
 
     private static final double SERVO_RANGE_DEGREES = 350;
     public static double LEFT_SERVO_ZERO_DEG_POSITION = 0.5;
