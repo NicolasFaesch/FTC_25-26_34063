@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TestingTuning;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.lib.Controller;
 
+@Disabled
 @Configurable
 @TeleOp(name="Shooter Test - Manual P-Control")
 public class ShooterTest extends OpMode {

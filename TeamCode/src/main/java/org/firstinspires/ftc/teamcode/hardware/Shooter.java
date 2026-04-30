@@ -38,14 +38,14 @@ public class Shooter {
     public static double SHOOTER_IDLE_VELOCITY = 3000; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
-    public static double SHOOTER_KP = 300.0;
+    public static double SHOOTER_KP = 200.0;
     public static double SHOOTER_KI = 0.0;
     public static double SHOOTER_KD = 60.0;
     public static double SHOOTER_KV = 13.0;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution
-    private static final double GEAR_RATIO = 1.0;  // input speed / output speed
+    private static final double GEAR_RATIO = 1.0;  // input gear teeth / output gear teeth
 
     // State of the shooter system for external setting
     public enum State {
@@ -154,7 +154,7 @@ public class Shooter {
 
     public void update(double hoodPos, double flywheelTargetVelocity, boolean validShootingPose, boolean validShootingState) {
         shooterTargetVelocity = flywheelTargetVelocity;
-        shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2*GEAR_RATIO);
+        shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2);
         if(manualOverride) {
             hood.setPosition(hoodPositionManual);
             shooterTargetVelocity = shooterTargetVelocityManual;
@@ -163,12 +163,12 @@ public class Shooter {
         }
 
         if(state == State.AIMING || state == State.SHOOTING) {
-            setShooterTargetVelocity(shooterTargetVelocity); // set shooter speed slightly higher to account for consecutive shots
-            boolean shooterToSpeed = Math.abs(shooterVelocity-(shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/4)) <= SHOOTER_VELOCITY_THRESHOLD;;
+            setShooterTargetVelocity(shooterTargetVelocity);
+            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;;
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {
-                shooterToSpeed &= shooterVelocity > shooterTargetVelocity - SHOOTER_VELOCITY_THRESHOLD/4;
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/4;
             }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;
@@ -196,7 +196,7 @@ public class Shooter {
                 blockerTimer.start();
             }
         } else {
-            if(blockerState == BlockerState.DISENGAGED || blockerState == BlockerState.DISENGAGING) {
+            if(blockerState == BlockerState.DISENGAGED) {
                 blocker.setPosition(BLOCKER_ENGAGED_POSITION);
                 blockerState = BlockerState.ENGAGING;
                 blockerTimer.start();
@@ -274,7 +274,7 @@ public class Shooter {
     public double getShooterTargetVelocityManual() {return shooterTargetVelocityManual;}
 
     private double toRPM(double velocityRaw) {
-        return velocityRaw / MOTOR_CPR * 60.0 / GEAR_RATIO;
+        return velocityRaw / MOTOR_CPR * 60.0 * GEAR_RATIO;
     }
 
     private double toTPS(double velocityRPM) { // encoder Ticks Per Second. Raw value for motor

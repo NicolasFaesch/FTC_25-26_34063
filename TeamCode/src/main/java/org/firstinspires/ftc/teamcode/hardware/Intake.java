@@ -45,7 +45,7 @@ public class Intake {
         return state;
     }
 
-    public void update(boolean blockerChanging) {
+    public void update(boolean blockerChanging, boolean readyToShoot) {
         switch(state) {
             case IDLE:
                 intakeMotor.setPower(0);
@@ -60,7 +60,13 @@ public class Intake {
                 intakeMotor.setPower(STORING_POWER);
                 break;
             case FEEDING:
-                intakeMotor.setPower(blockerChanging ? DISENGAGING_POWER : FEEDING_POWER);
+                if (blockerChanging) {
+                    intakeMotor.setPower(DISENGAGING_POWER);
+                } else if (readyToShoot){
+                    intakeMotor.setPower(FEEDING_POWER);
+                } else {
+                    intakeMotor.setPower(STORING_POWER);
+                }
                 break;
         }
     }

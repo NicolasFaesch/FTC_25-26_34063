@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.TestingTuning;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -19,6 +20,7 @@ import java.util.Locale;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 
+@Disabled
 @TeleOp(name = "Shooter PIDF Tuning", group = "Tuning")
 @Configurable
 public class ShooterPIDFTuning extends OpMode {

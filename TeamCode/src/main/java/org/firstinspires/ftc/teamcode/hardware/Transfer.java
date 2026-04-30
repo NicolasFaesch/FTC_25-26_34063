@@ -46,7 +46,7 @@ public class Transfer {
         return state;
     }
 
-    public void update(boolean blockerChanging) {
+    public void update(boolean blockerChanging, boolean readyToShoot) {
         switch(state) {
             case IDLE:
                 transferMotor.setPower(0);
@@ -61,7 +61,13 @@ public class Transfer {
                 transferMotor.setPower(STORING_POWER);
                 break;
             case FEEDING:
-                transferMotor.setPower(blockerChanging ? DISENGAGING_POWER : FEEDING_POWER);
+                if (blockerChanging) {
+                    transferMotor.setPower(DISENGAGING_POWER);
+                } else if (readyToShoot){
+                    transferMotor.setPower(FEEDING_POWER);
+                } else {
+                    transferMotor.setPower(STORING_POWER);
+                }
                 break;
         }
     }

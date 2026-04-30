@@ -35,7 +35,7 @@ public class RobotTeleOp extends Robot {
 
         AutoPoses.alliance = this.alliance == Alliance.RED ? AutoPoses.Alliance.RED : AutoPoses.Alliance.BLUE;
         drivetrainTeleOp.setParkingPose(AutoPoses.parkingPoseTele.getPose(), AutoPoses.parkingPoseTeleControlPoint.getPose());
-        drivetrainTeleOp.setGatePose(AutoPoses.gateIntaking.getPose(), AutoPoses.gateIntakingControlPoint.getPose());
+        drivetrainTeleOp.setGatePose(AutoPoses.gateIntakingTele.getPose(), AutoPoses.gateIntakingControlPoint.getPose());
     }
 
     public void update() {

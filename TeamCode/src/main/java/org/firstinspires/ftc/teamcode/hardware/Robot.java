@@ -66,14 +66,16 @@ public class Robot {
         blockerChanging = shooter.getBlockerState() == Shooter.BlockerState.DISENGAGING || shooter.getBlockerState() == Shooter.BlockerState.ENGAGING;
         DynamicAiming.AimingParams aimingParams = DynamicAiming.calculateTargeting(drivetrain.getPose(), drivetrain.getVelocityX(), drivetrain.getVelocityY(), drivetrain.getAngularVelocity());
 
-        intake.update(blockerChanging);
-        transfer.update(blockerChanging);
         turret.update(-aimingParams.turretAngle); // turret is inverted
 
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         validShootingState = turret.isOnTarget() && drivetrain.isValidShootingVelocity();
-
         shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState);
+
+        intake.update(blockerChanging, shooter.getReadyToShoot());
+        transfer.update(blockerChanging, shooter.getReadyToShoot());
+
+
     }
 
 

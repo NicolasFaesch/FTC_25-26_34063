@@ -39,6 +39,7 @@ public class AutoPoses {
     // RED Alliance
 
     // Start
+
     public static AutoPose startPoseClose = new AutoPose(-49, 48, 0);
     public static AutoPose startPoseFar   = new AutoPose(68, 19, -180);
 
@@ -61,16 +62,17 @@ public class AutoPoses {
     public static AutoPose shootClosePark = new AutoPose(-45, 19.2, 115.4);
 
 
-    public static AutoPose parkClose      = new AutoPose(-30, 20, 90); // TODO: pose setzten naja
+    public static AutoPose parkClose      = new AutoPose(-45, 20, 90); // TODO: pose setzten naja
     public static AutoPose parkFar        = new AutoPose(60, 54, 90); // 40, 32.5, 90
 
     // Gate (aus gate[0])
-    public static AutoPose gateReleasing = new AutoPose( 4, 54, 90);
+    public static AutoPose gateReleasing = new AutoPose( 4, 53, 90);
     public static AutoPose gateReleasingControlPoint = new AutoPose(4, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(14, 57, 125);
-    public static AutoPose gateIntakingSecond = new AutoPose(16, 58, 140);
+    public static AutoPose gateIntaking     = new AutoPose(10, 54, 130);
+    public static AutoPose gateIntakingTele = new AutoPose(14, 57, 125);
+    public static AutoPose gateIntakingSecond = new AutoPose(16.5, 58, 145);
     public static AutoPose gateIntakingControlPoint = new AutoPose(12, 20, 128);
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
 

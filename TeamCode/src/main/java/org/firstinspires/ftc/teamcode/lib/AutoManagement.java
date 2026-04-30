@@ -116,6 +116,7 @@ public class AutoManagement {
     private Timing.Timer gateIntakingTimer = new Timing.Timer(AutoConstants.GATE_INTAKING_TIME, TimeUnit.MILLISECONDS);
     private Timing.Timer shootingTimer = new Timing.Timer(AutoConstants.SHOOTING_TIME, TimeUnit.MILLISECONDS);
     private Timing.Timer intakeClearingTimer = new Timing.Timer(AutoConstants.INTAKE_CLEARING_TIME, TimeUnit.MILLISECONDS);
+    private Timing.Timer loadingZoneTimer = new Timing.Timer(AutoConstants.LOADING_ZONE_TIME, TimeUnit.MILLISECONDS);
 
     // ----------------------------------------------------
     // CONSTRUCTOR
@@ -239,18 +240,24 @@ public class AutoManagement {
             case DRIVE:
             case DRIVE_TO_INTAKE:
                 robotAuto.colorLED.setColor(ColorLED.Color.WHITE);
-                robotAuto.setState(Robot.State.IDLE);
+                robotAuto.setState(Robot.State.INTAKING);
                 executeCurrentPath();
                 break;
             case DRIVE_TO_SHOOT:
                 robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
-                robotAuto.setState(Robot.State.OUTTAKING);
+                if(currentObjective == Objective.SHOOT_START) {
+                    robotAuto.setState(Robot.State.INTAKING);
+                } else {
+                    robotAuto.setState(Robot.State.OUTTAKING);
+                }
                 executeCurrentPath();
                 intakeClearingTimer.start();
                 break;
             case INTAKING:
                 robotAuto.colorLED.setColor(ColorLED.Color.BLUE);
                 robotAuto.setState(Robot.State.INTAKING);
+                if(currentObjective == Objective.LOADING_ZONE)
+                    loadingZoneTimer.start();
                 executeCurrentPath();
                 break;
             case SHOOTING:
@@ -339,6 +346,8 @@ public class AutoManagement {
                 if (robotAuto.drivetrainAuto.isAtEnd()) {
                     nextTask();
                 }
+                if(currentObjective == Objective.LOADING_ZONE && loadingZoneTimer.done())
+                    nextTask();
                 break;
             case SHOOTING:
                 if (!robotAuto.shooter.getReadyToShoot()) {
@@ -429,13 +438,13 @@ public class AutoManagement {
 
         // GATE_INTAKING
         pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, true),
-                new PathChain(AutoPaths.startCloseToGateIntaking, AutoPaths.gateIntakingShuffleTo, AutoPaths.gateIntakingShuffleBack));
+                new PathChain(AutoPaths.startCloseToGateIntaking, AutoPaths.gateIntakingShuffleTo));
         pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_INTAKING, true),
-                new PathChain(AutoPaths.shootCloseToGateIntaking, AutoPaths.gateIntakingShuffleTo, AutoPaths.gateIntakingShuffleBack));
+                new PathChain(AutoPaths.shootCloseToGateIntaking, AutoPaths.gateIntakingShuffleTo));
         pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, false),
-                new PathChain(AutoPaths.startFarToGateIntaking, AutoPaths.gateIntakingShuffleTo, AutoPaths.gateIntakingShuffleBack));
+                new PathChain(AutoPaths.startFarToGateIntaking, AutoPaths.gateIntakingShuffleTo));
         pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_INTAKING, false),
-                new PathChain(AutoPaths.shootFarToGateIntaking, AutoPaths.gateIntakingShuffleTo, AutoPaths.gateIntakingShuffleBack));
+                new PathChain(AutoPaths.shootFarToGateIntaking, AutoPaths.gateIntakingShuffleTo));
 
 
         // LOADING_ZONE

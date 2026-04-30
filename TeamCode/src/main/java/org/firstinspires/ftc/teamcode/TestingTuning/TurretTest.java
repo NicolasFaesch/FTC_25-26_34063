@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.hardware.Turret;
 
-@TeleOp(name="Turret Test")
+@TeleOp(group="Test", name="Turret Test")
 public class TurretTest extends OpMode {
 
     Turret turret;
