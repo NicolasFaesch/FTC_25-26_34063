@@ -13,6 +13,7 @@ public class Intake {
     public static double STORING_POWER = 0.3;
     public static double DISENGAGING_POWER = 0.4;
     public static double FEEDING_POWER = 0.8;
+    public static double FEEDING_POWER_FAR = 0.4;
 
     public enum State {
         IDLE,
@@ -45,7 +46,7 @@ public class Intake {
         return state;
     }
 
-    public void update(boolean blockerChanging, boolean readyToShoot) {
+    public void update(boolean blockerChanging, boolean readyToShoot, boolean isFarSide) {
         switch(state) {
             case IDLE:
                 intakeMotor.setPower(0);
@@ -63,7 +64,7 @@ public class Intake {
                 if (blockerChanging) {
                     intakeMotor.setPower(DISENGAGING_POWER);
                 } else if (readyToShoot){
-                    intakeMotor.setPower(FEEDING_POWER);
+                    intakeMotor.setPower(isFarSide ? FEEDING_POWER_FAR:FEEDING_POWER);
                 } else {
                     intakeMotor.setPower(STORING_POWER);
                 }

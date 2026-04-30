@@ -12,7 +12,7 @@ public class PositionChecker {
     private static final Pose2D FAR_ZONE_CENTER = new Pose2D (DistanceUnit.METER, 1.83, 0, AngleUnit.DEGREES, 0);
 
     private static final double NEAR_ZONE_WIDTH = 1.83;
-    private static final double FAR_ZONE_WIDTH = 0.61;
+    private static final double FAR_ZONE_WIDTH = 0.7;
 
 
     private static double l1Norm (double x, double y) {
@@ -29,5 +29,9 @@ public class PositionChecker {
     public static boolean checkInZones(Pose2D robotPose) {
         return (checkInZone(robotPose, NEAR_ZONE_CENTER, NEAR_ZONE_WIDTH)
                 || checkInZone(robotPose, FAR_ZONE_CENTER, FAR_ZONE_WIDTH));
+    }
+
+    public static boolean checkFarSide(Pose2D robotPose) {
+        return robotPose.getX(DistanceUnit.INCH) > 10;
     }
 }

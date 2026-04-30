@@ -114,7 +114,7 @@ public class AutoManagement {
 
     private Timing.Timer gateReleasingTimer = new Timing.Timer(AutoConstants.GATE_RELEASING_TIME, TimeUnit.MILLISECONDS);
     private Timing.Timer gateIntakingTimer = new Timing.Timer(AutoConstants.GATE_INTAKING_TIME, TimeUnit.MILLISECONDS);
-    private Timing.Timer shootingTimer = new Timing.Timer(AutoConstants.SHOOTING_TIME, TimeUnit.MILLISECONDS);
+    private Timing.Timer shootingTimer;// = new Timing.Timer(autoClose == true?AutoConstants.SHOOTING_TIME:AutoConstants.SHOOTING_TIME_FAR, TimeUnit.MILLISECONDS);
     private Timing.Timer intakeClearingTimer = new Timing.Timer(AutoConstants.INTAKE_CLEARING_TIME, TimeUnit.MILLISECONDS);
     private Timing.Timer loadingZoneTimer = new Timing.Timer(AutoConstants.LOADING_ZONE_TIME, TimeUnit.MILLISECONDS);
 
@@ -132,6 +132,9 @@ public class AutoManagement {
 
         this.panelsField = PanelsField.INSTANCE.getField();
         this.panelsField.init();
+
+        shootingTimer = new Timing.Timer(autoClose == true?AutoConstants.SHOOTING_TIME:AutoConstants.SHOOTING_TIME_FAR, TimeUnit.MILLISECONDS);
+
 
         AutoPaths autoPaths = new AutoPaths();
         autoPaths.buildPaths();
@@ -247,6 +250,7 @@ public class AutoManagement {
                 robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
                 if(currentObjective == Objective.SHOOT_START) {
                     robotAuto.setState(Robot.State.INTAKING);
+
                 } else {
                     robotAuto.setState(Robot.State.OUTTAKING);
                 }
@@ -268,7 +272,7 @@ public class AutoManagement {
                 robotAuto.colorLED.setColor(ColorLED.Color.ORANGE);
                 if (currentObjective == Objective.GATE_RELEASING) {
                     gateReleasingTimer.start();
-                    robotAuto.setState(Robot.State.IDLE);
+                    robotAuto.setState(Robot.State.AIMING);
                 } else if (currentObjective == Objective.GATE_INTAKING) {
                     robotAuto.setState(Robot.State.INTAKING);
                     gateIntakingTimer.start();
@@ -346,7 +350,7 @@ public class AutoManagement {
                 if (robotAuto.drivetrainAuto.isAtEnd()) {
                     nextTask();
                 }
-                if(currentObjective == Objective.LOADING_ZONE && loadingZoneTimer.done())
+                if(currentObjective == Objective.LOADING_ZONE && currentTask == Task.INTAKING && loadingZoneTimer.done())
                     nextTask();
                 break;
             case SHOOTING:

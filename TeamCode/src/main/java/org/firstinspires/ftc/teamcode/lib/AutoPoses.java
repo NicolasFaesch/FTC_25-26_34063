@@ -41,7 +41,7 @@ public class AutoPoses {
     // Start
 
     public static AutoPose startPoseClose = new AutoPose(-49, 48, 0);
-    public static AutoPose startPoseFar   = new AutoPose(68, 19, -180);
+    public static AutoPose startPoseFar   = new AutoPose(68, 19, 90);
 
     // Intake BEFORE (xBefore, yBefore, h)
     public static AutoPose intakingCloseBefore  = new AutoPose(-12.5, 25, 90);
@@ -56,7 +56,7 @@ public class AutoPoses {
     // Shooting
     public static AutoPose shootClose = new AutoPose(-19, 22.5, 30);
 
-    public static AutoPose shootFar   = new AutoPose(59.3, 14.2, -180);
+    public static AutoPose shootFar   = new AutoPose(59.3, 14.2, 90);
 
     // Optional (nicht in alten Config aktiv genutzt)
     public static AutoPose shootClosePark = new AutoPose(-45, 19.2, 115.4);
@@ -71,7 +71,7 @@ public class AutoPoses {
 
     // Offen lassen wie gewünscht
     public static AutoPose gateIntaking     = new AutoPose(10, 54, 130);
-    public static AutoPose gateIntakingTele = new AutoPose(14, 57, 125);
+    public static AutoPose gateIntakingTele = new AutoPose(13, 55, 125);
     public static AutoPose gateIntakingSecond = new AutoPose(16.5, 58, 145);
     public static AutoPose gateIntakingControlPoint = new AutoPose(12, 20, 128);
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
@@ -84,8 +84,8 @@ public class AutoPoses {
     public static AutoPose loadingZoneAfter  = new AutoPose(53, 57, 90); // TODO: pose setzten naja*/
 
 
-    public static AutoPose loadingZoneBefore = new AutoPose(65, 40, 80); // TODO: pose setzten naja
-    public static AutoPose loadingZoneAfter  = new AutoPose(65, 60, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneBefore = new AutoPose(64, 45, 80); // TODO: pose setzten naja
+    public static AutoPose loadingZoneAfter  = new AutoPose(64, 62, 80); // TODO: pose setzten naja
 
     public static AutoPose CP1  = new AutoPose(0, 0, 0); // TODO: pose setzten naja
     public static AutoPose CP2  = new AutoPose(0, 0, 0); // TODO: pose setzten naja

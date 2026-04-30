@@ -12,8 +12,9 @@ public class Transfer {
     public static double INTAKING_POWER = 0.5;
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.0;
-    public static double DISENGAGING_POWER = -0.3;
+    public static double DISENGAGING_POWER = -0.5;
     public static double FEEDING_POWER = 0.8;
+    public static double FEEDING_POWER_FAR = 0.4;
 
     public enum State {
         IDLE,
@@ -46,7 +47,7 @@ public class Transfer {
         return state;
     }
 
-    public void update(boolean blockerChanging, boolean readyToShoot) {
+    public void update(boolean blockerChanging, boolean readyToShoot, boolean isFarSide) {
         switch(state) {
             case IDLE:
                 transferMotor.setPower(0);
@@ -64,7 +65,7 @@ public class Transfer {
                 if (blockerChanging) {
                     transferMotor.setPower(DISENGAGING_POWER);
                 } else if (readyToShoot){
-                    transferMotor.setPower(FEEDING_POWER);
+                    transferMotor.setPower(isFarSide ? FEEDING_POWER_FAR:FEEDING_POWER);
                 } else {
                     transferMotor.setPower(STORING_POWER);
                 }

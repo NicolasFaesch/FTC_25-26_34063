@@ -227,7 +227,7 @@ public class AutoPaths {
         shootCloseToShootCloseParked = createBezierLine(AutoPoses.startPoseClose, AutoPoses.shootClosePark);
 
         // Remaining Paths
-        shootFarToParkedFar = createBezierLine(AutoPoses.shootFar, AutoPoses.parkFar);
+        shootFarToParkedFar = createBezierLine(AutoPoses.shootFar, AutoPoses.loadingZoneAfter);
         gateReleasingToParkedFar = createBezierLine(AutoPoses.gateReleasing, AutoPoses.parkFar);
 
 
