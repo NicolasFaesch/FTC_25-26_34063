@@ -11,5 +11,5 @@ public class AutoConstants {
     public static long GATE_RELEASING_TIME = 1000;
     public static long GATE_INTAKING_TIME = 1500;
     public static long SHOOTING_TIME = 750;
-    public static long INTAKE_CLEARING_TIME = 50;
+    public static long INTAKE_CLEARING_TIME = 30;
 }

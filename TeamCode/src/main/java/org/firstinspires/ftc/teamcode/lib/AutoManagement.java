@@ -11,6 +11,7 @@ import com.bylazar.field.Style;
 
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -469,6 +470,7 @@ public class AutoManagement {
         // GATE_INTAKING
         pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, true),
                 List.of(AutoPaths.startCloseToGateIntaking));
+                //List.of(new PathChain(AutoPaths.startCloseToGateIntaking, in) ));
         pathMap.put(new Key(Objective.SHOOT, Task.DRIVE, Objective.GATE_INTAKING, true),
                 List.of(AutoPaths.shootCloseToGateIntaking));
         pathMap.put(new Key(Objective.SHOOT_START, Task.DRIVE, Objective.GATE_INTAKING, false),
