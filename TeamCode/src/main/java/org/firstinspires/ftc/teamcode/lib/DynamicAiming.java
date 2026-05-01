@@ -16,7 +16,7 @@ public class DynamicAiming {
     // --- Tuning Constants ---
 
     // Low-Pass Filter Alpha (0.0 to 1.0). Lower = smoother but more lag.
-    public static double kVelFilter = 1.0;
+    public static double kVelFilter = 1.2;
 
     // System lag in seconds (Turret servo settling time + barrel time)
     public static double tLag = 0.05;

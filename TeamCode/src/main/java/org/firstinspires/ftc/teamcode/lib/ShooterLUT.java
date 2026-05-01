@@ -29,13 +29,13 @@ public class ShooterLUT {
         shooterPositions.add(new double[]{2.5, 3500, 0.5, 0.8});
         shooterPositions.add(new double[]{2.6, 3500, 0.5});
         shooterPositions.add(new double[]{2.7, 3600, 0.525});
-        shooterPositions.add(new double[]{3.5, 4200, 0.64});
-        shooterPositions.add(new double[]{3.6, 4200, 0.6});
-        shooterPositions.add(new double[]{3.7, 4300, 0.6});
+        shooterPositions.add(new double[]{3.5, 4300, 0.64});
+        shooterPositions.add(new double[]{3.6, 4300, 0.6});
+        shooterPositions.add(new double[]{3.7, 4400, 0.6});
         shooterPositions.add(new double[]{3.8, 4400, 0.6});
-        shooterPositions.add(new double[]{3.9, 4400, 0.61, 0.8});
-        shooterPositions.add(new double[]{4.0, 4400, 0.625, 0.8});
-        shooterPositions.add(new double[]{4.1, 4400, 0.625, 0.8});
+        shooterPositions.add(new double[]{3.9, 4450, 0.61, 0.8});
+        shooterPositions.add(new double[]{4.0, 4450, 0.625, 0.8});
+        shooterPositions.add(new double[]{4.1, 4450, 0.625, 0.8});
         shooterPositions.add(new double[]{4.2, 4500, 0.65, 0.8});
 
 

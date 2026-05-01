@@ -41,7 +41,7 @@ public class AutoPoses {
     // Start
 
     public static AutoPose startPoseClose = new AutoPose(-49, 48, 0);
-    public static AutoPose startPoseFar   = new AutoPose(68, 19, 90);
+    public static AutoPose startPoseFar   = new AutoPose(60, 19, 90);
 
     // Intake BEFORE (xBefore, yBefore, h)
     public static AutoPose intakingCloseBefore  = new AutoPose(-12.5, 25, 90);
@@ -66,13 +66,13 @@ public class AutoPoses {
     public static AutoPose parkFar        = new AutoPose(60, 54, 90); // 40, 32.5, 90
 
     // Gate (aus gate[0])
-    public static AutoPose gateReleasing = new AutoPose( 4, 53, 90);
+    public static AutoPose gateReleasing = new AutoPose( 4, 52, 90);
     public static AutoPose gateReleasingControlPoint = new AutoPose(4, 20, 90);
 
     // Offen lassen wie gewünscht
     public static AutoPose gateIntaking     = new AutoPose(10, 54, 130);
     public static AutoPose gateIntakingTele = new AutoPose(13, 55, 125);
-    public static AutoPose gateIntakingSecond = new AutoPose(16.5, 58, 145);
+    public static AutoPose gateIntakingSecond = new AutoPose(16.5, 57, 145);
     public static AutoPose gateIntakingControlPoint = new AutoPose(12, 20, 128);
     public static AutoPose gateIntakingToShooterCloseControlPoint = new AutoPose(0, 20, 90);
 
