@@ -28,13 +28,14 @@ public class Shooter {
     // Blocker Positions & time
     public static double BLOCKER_ENGAGED_POSITION = 0.8;
     public static double BLOCKER_DISENGAGED_POSITION = 0.475;
-    public static long BLOCKER_TIME_MS = 150;
+    public static long BLOCKER_TIME_MS = 80;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
     public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD_CLOSE = 300;
     public static double SHOOTER_IDLE_VELOCITY = 3000; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -152,7 +153,7 @@ public class Shooter {
         }
     }
 
-    public void update(double hoodPos, double flywheelTargetVelocity, boolean validShootingPose, boolean validShootingState) {
+    public void update(double hoodPos, double flywheelTargetVelocity, boolean validShootingPose, boolean validShootingState, boolean farSide) {
         shooterTargetVelocity = flywheelTargetVelocity;
         shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2);
         if(manualOverride) {
@@ -164,7 +165,7 @@ public class Shooter {
 
         if(state == State.AIMING || state == State.SHOOTING) {
             setShooterTargetVelocity(shooterTargetVelocity);
-            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= SHOOTER_VELOCITY_THRESHOLD;;
+            boolean shooterToSpeed = Math.abs(shooterVelocity-shooterTargetVelocity) <= (farSide ? SHOOTER_VELOCITY_THRESHOLD:SHOOTER_VELOCITY_THRESHOLD_CLOSE);
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {

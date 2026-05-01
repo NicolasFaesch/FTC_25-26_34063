@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.lib.AutoPoses;
 import org.firstinspires.ftc.teamcode.lib.DynamicAiming;
+import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 import java.util.Locale;
 
@@ -47,6 +48,9 @@ public class RobotTeleOp extends Robot {
             if(gamepad1.bWasPressed()) {
                 drivetrainTeleOp.autoDriveToPark();
                 setState(State.PARKING);
+            }
+            if (gamepad1.xWasPressed()) {
+                drivetrainTeleOp.resetPose(alliance==Alliance.RED ? PoseStorage.resetPoseRed : PoseStorage.resetPoseBlue);
             }
         }
 
@@ -147,12 +151,10 @@ public class RobotTeleOp extends Robot {
             }
         }
 
-        if (gamepad1.xWasPressed()) {
-            if (state == State.AIMING || state == State.SHOOTING) {
-                setState(State.STORING);
-            } else {
-                setState(State.AIMING);
-            }
+
+
+        if (gamepad1.aWasPressed() && gamepad1.left_trigger < 0.1) {
+            setState(State.AIMING);
         }
 
         if(gamepad1.bWasPressed()) {

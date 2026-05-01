@@ -131,5 +131,10 @@ public class DrivetrainTeleOp extends Drivetrain{
         follower.followPath(path, true);
     }
 
+    public void resetPose(Pose2D resetPose) {
+        follower.setPose(pose2DtoPose(resetPose));
+        super.update();
+    }
+
 
 }

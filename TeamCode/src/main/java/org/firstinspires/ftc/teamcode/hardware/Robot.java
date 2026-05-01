@@ -36,6 +36,7 @@ public class Robot {
     protected boolean validShootingPose;
     protected boolean validShootingState;
     protected boolean blockerChanging;
+    protected boolean farSide;
 
 
     public Robot(HardwareMap hardwareMap, Alliance alliance) {
@@ -50,6 +51,7 @@ public class Robot {
         validShootingPose = false;
         validShootingState = false;
         blockerChanging = false;
+        farSide = false;
 
         DynamicAiming.setTargetPose(this.alliance == Alliance.RED ? PoseStorage.targetPoseRed : PoseStorage.targetPoseBlue);
         DynamicAiming.createLUTs();
@@ -70,10 +72,11 @@ public class Robot {
 
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         validShootingState = turret.isOnTarget() && drivetrain.isValidShootingVelocity();
-        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState);
+        farSide = PositionChecker.checkFarSide(drivetrain.getPose());
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState, farSide);
 
-        intake.update(blockerChanging, shooter.getReadyToShoot(), PositionChecker.checkFarSide(drivetrain.getPose()));
-        transfer.update(blockerChanging, shooter.getReadyToShoot(), PositionChecker.checkFarSide(drivetrain.getPose()));
+        intake.update(blockerChanging, shooter.getReadyToShoot(), farSide);
+        transfer.update(blockerChanging, shooter.getReadyToShoot(), farSide);
 
 
     }
