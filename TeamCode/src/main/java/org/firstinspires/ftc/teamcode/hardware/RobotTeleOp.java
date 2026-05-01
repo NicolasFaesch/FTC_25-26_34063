@@ -252,6 +252,8 @@ public class RobotTeleOp extends Robot {
             telemetry.addData("Current Velocity", shooter.getShooterVelocity());
             telemetry.addData("Target Angle", turret.getTargetAngle());
             telemetry.addData("Turret Angle", turret.getTurretAngle());
+            telemetry.addData("Target Pose X", DynamicAiming.getTargetX());
+            telemetry.addData("Target Pose Y", DynamicAiming.getTargetY());
         }
 
 

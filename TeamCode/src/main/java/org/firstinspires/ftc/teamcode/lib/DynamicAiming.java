@@ -134,4 +134,7 @@ public class DynamicAiming {
 
     public static double getTargetDistance() {return targetDistance;}
 
+    public static double getTargetX() {return targetX;}
+    public static double getTargetY() {return targetY;}
+
 }
