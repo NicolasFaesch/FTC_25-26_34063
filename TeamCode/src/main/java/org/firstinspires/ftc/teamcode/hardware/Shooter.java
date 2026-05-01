@@ -26,8 +26,8 @@ public class Shooter {
     public static double HOOD_STEP_SIZE = 0.025;
 
     // Blocker Positions & time
-    public static double BLOCKER_ENGAGED_POSITION = 0.8;
-    public static double BLOCKER_DISENGAGED_POSITION = 0.475;
+    public static double BLOCKER_ENGAGED_POSITION = 0.55;
+    public static double BLOCKER_DISENGAGED_POSITION = 0.125;
     public static long BLOCKER_TIME_MS = 80;
 
     // Shooter Velocity Params (in RPM)
@@ -154,7 +154,7 @@ public class Shooter {
     }
 
     public void update(double hoodPos, double flywheelTargetVelocity, boolean validShootingPose, boolean validShootingState, boolean farSide) {
-        shooterTargetVelocity = flywheelTargetVelocity;
+        shooterTargetVelocity = flywheelTargetVelocity-50; //TODO: manual changepp
         shooterVelocity = toRPM((shooterTop.getVelocity() + shooterBottom.getVelocity())/2);
         if(manualOverride) {
             hood.setPosition(hoodPositionManual);

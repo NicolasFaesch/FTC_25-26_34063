@@ -251,9 +251,12 @@ public class AutoManagement {
                 if(currentObjective == Objective.SHOOT_START) {
                     robotAuto.setState(Robot.State.INTAKING);
 
+                } else if(currentObjective == Objective.LOADING_ZONE){
+                    robotAuto.setState(Robot.State.INTAKING);
                 } else {
                     robotAuto.setState(Robot.State.OUTTAKING);
                 }
+                if(currentObjective == Objective.LOADING_ZONE)
                 executeCurrentPath();
                 intakeClearingTimer.start();
                 break;
