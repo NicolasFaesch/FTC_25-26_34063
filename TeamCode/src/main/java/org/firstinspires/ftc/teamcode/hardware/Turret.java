@@ -77,8 +77,8 @@ public class Turret {
         servoLeft = hardwareMap.get(ServoImplEx.class, "turret left");
         servoRight = hardwareMap.get(ServoImplEx.class, "turret right");
 
-        axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
-        magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
+        //axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
+        //magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
 
         setState(State.IDLE);
         changeState(); // force set state for initial state
@@ -103,8 +103,8 @@ public class Turret {
 
     public void update(double targetAngle) {
         this.targetAngle = targetAngle;
-        // TODO: add magnetic encoder
-        turretAngle = getFusedAngle(magneticEncoder.getAngle(), axonEncoder.getAngle());
+        // NO ENCODER
+        turretAngle = targetAngle;//getFusedAngle(magneticEncoder.getAngle(), axonEncoder.getAngle());
 
         if(state == State.IDLE) { // do nothing if idle
             // servoLeft.setPower(0);
