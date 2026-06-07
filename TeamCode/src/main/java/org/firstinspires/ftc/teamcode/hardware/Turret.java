@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -150;  // in deg
-    public static double TURRET_MAX_ANGLE = 125; // in deg
+    public static double TURRET_MIN_ANGLE = -40;  // in deg
+    public static double TURRET_MAX_ANGLE = 40; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = -150; // in deg
 
@@ -77,8 +77,8 @@ public class Turret {
         servoLeft = hardwareMap.get(ServoImplEx.class, "turret left");
         servoRight = hardwareMap.get(ServoImplEx.class, "turret right");
 
-        //axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
-        //magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
+        axonEncoder = new AxonEncoder(hardwareMap, "axon encoder");
+        magneticEncoder = hardwareMap.get(AS5600Driver.class, "magnetic encoder");
 
         setState(State.IDLE);
         changeState(); // force set state for initial state

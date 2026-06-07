@@ -26,16 +26,16 @@ public class Shooter {
     public static double HOOD_STEP_SIZE = 0.025;
 
     // Blocker Positions & time
-    public static double BLOCKER_ENGAGED_POSITION = 1.0;
-    public static double BLOCKER_DISENGAGED_POSITION = 0.5;
-    public static long BLOCKER_TIME_MS = 80;
+    public static double BLOCKER_ENGAGED_POSITION = 0.5;
+    public static double BLOCKER_DISENGAGED_POSITION = 1.0;
+    public static long BLOCKER_TIME_MS = 120;
 
     // Shooter Velocity Params (in RPM)
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
     public static double SHOOTER_VELOCITY_THRESHOLD = 200; // threshold to decide if fast enough to shoot
-    public static double SHOOTER_VELOCITY_THRESHOLD_CLOSE = 300;
+    public static double SHOOTER_VELOCITY_THRESHOLD_CLOSE = 200;
     public static double SHOOTER_IDLE_VELOCITY = 3000; // Idling speed
 
     // Shooter Velocity PIDF Coefficients
@@ -110,7 +110,7 @@ public class Shooter {
         blocker = hardwareMap.get(Servo.class, "blocker");
 
         shooterRight.setDirection(DcMotorEx.Direction.REVERSE);
-        shooterLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        shooterLeft.setDirection(DcMotorEx.Direction.FORWARD);
 
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -169,7 +169,7 @@ public class Shooter {
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {
-                shooterToSpeed &= shooterVelocity > shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/4;
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity;//-SHOOTER_VELOCITY_THRESHOLD/4;
             }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;

@@ -13,7 +13,7 @@ public class Transfer {
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.0;
     public static double DISENGAGING_POWER = -0.5;
-    public static double FEEDING_POWER = 0.8;
+    public static double FEEDING_POWER = 0.6;
     public static double FEEDING_POWER_FAR = 0.8;
 
     public enum State {

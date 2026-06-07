@@ -10,18 +10,18 @@ public class ShooterLUT {
 
     // known good position points for LUT, goes as DISTANCE, VELOCITY, HOOD POSITION, TIME_OF_FLIGHT
     static {
-        shooterPositions.add(new double[]{0.9, 2500, 0.175, 0.55});
-        shooterPositions.add(new double[]{1.0, 2600, 0.2});
-        shooterPositions.add(new double[]{1.1, 2600, 0.275});
-        shooterPositions.add(new double[]{1.2, 2600, 0.275});
-        shooterPositions.add(new double[]{1.3, 2800, 0.35});
-        shooterPositions.add(new double[]{1.4, 2800, 0.35});
-        shooterPositions.add(new double[]{1.5, 2800, 0.375, 0.6});
-        shooterPositions.add(new double[]{1.6, 2900, 0.425});
-        shooterPositions.add(new double[]{1.7, 3000, 0.45});
-        shooterPositions.add(new double[]{1.8, 3000, 0.475});
-        shooterPositions.add(new double[]{1.9, 3100, 0.5});
-        shooterPositions.add(new double[]{2.0, 3200, 0.525, 0.7});
+        shooterPositions.add(new double[]{0.9, 2500, 0.125, 0.55});
+        shooterPositions.add(new double[]{1.0, 2600, 0.15});
+        shooterPositions.add(new double[]{1.1, 2600, 0.225});
+        shooterPositions.add(new double[]{1.2, 2600, 0.225});
+        shooterPositions.add(new double[]{1.3, 2800, 0.3});
+        shooterPositions.add(new double[]{1.4, 2800, 0.3});
+        shooterPositions.add(new double[]{1.5, 2800, 0.325, 0.6});
+        shooterPositions.add(new double[]{1.6, 2900, 0.375});
+        shooterPositions.add(new double[]{1.7, 3000, 0.4});
+        shooterPositions.add(new double[]{1.8, 3000, 0.425});
+        shooterPositions.add(new double[]{1.9, 3100, 0.45});
+        shooterPositions.add(new double[]{2.0, 3200, 0.5, 0.7});
         shooterPositions.add(new double[]{2.1, 3200, 0.525});
         shooterPositions.add(new double[]{2.2, 3300, 0.55});
         shooterPositions.add(new double[]{2.3, 3400, 0.575});

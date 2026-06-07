@@ -66,6 +66,9 @@ public class TurretTest extends OpMode {
         if (gamepad1.dpadLeftWasPressed())
            targetAngle = -90;
 
+        if(gamepad1.bWasPressed())
+            targetAngle = 0;
+
         turret.update(targetAngle);
 
 
