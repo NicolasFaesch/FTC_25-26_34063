@@ -1,10 +1,15 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.arcrobotics.ftclib.util.Timing;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.arcrobotics.ftclib.util.Timing;
+
+import java.util.concurrent.TimeUnit;
+
 @Configurable
 public class Intake {
 
@@ -14,6 +19,8 @@ public class Intake {
     public static double DISENGAGING_POWER = 0.4;
     public static double FEEDING_POWER = 0.6;
     public static double FEEDING_POWER_FAR = 0.4;
+
+    public static long REVERSING_OUTTAKING_TIME_MS = 100;
 
     public enum State {
         IDLE,
@@ -26,6 +33,9 @@ public class Intake {
     private State state;
 
     private DcMotorEx intakeMotor;
+    private Timing.Timer reversingOuttakingTimer = new Timing.Timer(REVERSING_OUTTAKING_TIME_MS, TimeUnit.MILLISECONDS);
+
+
 
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class,"intake");
@@ -35,6 +45,7 @@ public class Intake {
         intakeMotor.setDirection(DcMotorEx.Direction.REVERSE);
 
         setState(State.IDLE);
+        reversingOuttakingTimer.start(); // initially start to make sure it's completed
     }
     public void setState(State state) {
         if(state != this.state) {
@@ -52,7 +63,11 @@ public class Intake {
                 intakeMotor.setPower(0);
                 break;
             case INTAKING:
-                intakeMotor.setPower(INTAKING_POWER);
+                if(reversingOuttakingTimer.done()) {
+                    intakeMotor.setPower(INTAKING_POWER);
+                } else {
+                    intakeMotor.setPower(OUTTAKING_POWER);
+                }
                 break;
             case OUTTAKING:
                 intakeMotor.setPower(OUTTAKING_POWER);
@@ -70,6 +85,10 @@ public class Intake {
                 }
                 break;
         }
+    }
+
+    public void reverseOuttake() {
+        reversingOuttakingTimer.start();
     }
 
 }

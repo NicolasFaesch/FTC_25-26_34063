@@ -73,7 +73,7 @@ public class Robot {
         validShootingPose = PositionChecker.checkInZones(drivetrain.getPose()) && DynamicAiming.getTargetDistance() > ShooterLUT.minDistance;
         validShootingState = turret.isOnTarget() && drivetrain.isValidShootingVelocity();
         farSide = PositionChecker.checkFarSide(drivetrain.getPose());
-        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState, farSide);
+        shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState, farSide, state==State.OUTTAKING);
 
         intake.update(blockerChanging, shooter.getReadyToShoot(), farSide);
         transfer.update(blockerChanging, shooter.getReadyToShoot(), farSide);
@@ -105,6 +105,7 @@ public class Robot {
                     transfer.setState(Transfer.State.OUTTAKING);
                     turret.setState(Turret.State.IDLE);
                     shooter.setState(Shooter.State.IDLE);
+                    shooter.disengageBlocker();
                     break;
                 case SHOOTING:
                     intake.setState(Intake.State.FEEDING);

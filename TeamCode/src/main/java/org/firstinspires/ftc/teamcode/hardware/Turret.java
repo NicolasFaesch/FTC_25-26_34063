@@ -10,14 +10,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Turret {
 
     // Turret Angles
-    public static double TURRET_MIN_ANGLE = -40;  // in deg
-    public static double TURRET_MAX_ANGLE = 40; // in deg
+    public static double TURRET_MIN_ANGLE = -150;  // in deg
+    public static double TURRET_MAX_ANGLE = 150; // in deg
     public static double TURRET_ANGLE_STEP_SIZE = 2.0;  // for manual adjustment in deg
     public static double TURRET_STORED_ANGLE = -150; // in deg
 
     private static final double SERVO_RANGE_DEGREES = 350;
     public static double LEFT_SERVO_ZERO_DEG_POSITION = 0.5;
     public static double RIGHT_SERVO_ZERO_DEG_POSITION = 0.5;
+
+    public static double ZERO_ANGLE_OFFSET = 0;
 
     public static double ON_TARGET_THRESHOLD = 10; // max angle deviation for target check to be true
 
@@ -124,7 +126,7 @@ public class Turret {
         // 1. Calculate the required servo angle to reach the turret target.
         // Dividing by the total gear ratio moves us from the turret's frame back to the servo's frame.
         double totalGearRatio = GEAR_RATIO_SERVO * GEAR_RATIO_TURRET;
-        double servoTargetAngle = this.targetAngle / totalGearRatio;
+        double servoTargetAngle = Math.max(-180, Math.min(180, this.targetAngle + ZERO_ANGLE_OFFSET)) / totalGearRatio;
 
         // 2. Convert the degrees into the 0.0 - 1.0 position scale.
         // A 1-degree turn is equal to (1 / 350) in positional units.

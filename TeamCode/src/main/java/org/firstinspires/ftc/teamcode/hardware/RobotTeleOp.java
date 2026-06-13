@@ -23,6 +23,7 @@ public class RobotTeleOp extends Robot {
     public DrivetrainTeleOp drivetrainTeleOp;
 
     double previousTime = 0;
+    boolean reverseOuttaked = false;
     Gamepad gamepad1, gamepad2;
 
 
@@ -135,6 +136,13 @@ public class RobotTeleOp extends Robot {
             } else {
                 setState(State.INTAKING);
             }
+        }
+
+        if(gamepad1.left_stick_y > 0.2 && state == State.INTAKING && !reverseOuttaked) {
+            intake.reverseOuttake();
+            reverseOuttaked = true;
+        } else if(gamepad1.left_stick_y < -0.1 && state == State.INTAKING && reverseOuttaked){
+            reverseOuttaked = false;
         }
 
         if (gamepad1.right_trigger > 0.1) {
