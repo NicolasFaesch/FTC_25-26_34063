@@ -7,8 +7,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class PoseStorage {
-    public static final double TARGET_X = -1.78; //TODO: tune
-    public static final double TARGET_Y = 1.73; // positive on red side
+    public static final double TARGET_X = -1.7; //TODO: tune
+    public static final double TARGET_Y = 1.7; // positive on red side
     public static final double RESET_X = -5;
     public static final double RESET_Y = 49.3;
     public static final double RESET_HEADING = 87;

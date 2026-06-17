@@ -14,7 +14,7 @@ public class Transfer {
     public static double STORING_POWER = 0.0;
     public static double DISENGAGING_POWER = -0.5;
     public static double FEEDING_VELOCITY_NORMED = 1.0;
-    public static double FEEDING_VELOCITY_NORMED_FAR = 0.8;
+    public static double FEEDING_VELOCITY_NORMED_FAR = 0.7;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution

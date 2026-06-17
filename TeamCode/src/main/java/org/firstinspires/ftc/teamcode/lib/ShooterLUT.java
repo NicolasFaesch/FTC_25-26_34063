@@ -5,38 +5,41 @@ import com.arcrobotics.ftclib.util.InterpLUT;
 import java.util.ArrayList;
 import java.util.List;
 
+//servo positions with 8t offset
 public class ShooterLUT {
     private static List<double[]> shooterPositions = new ArrayList<>();
 
     // known good position points for LUT, goes as DISTANCE, VELOCITY, HOOD POSITION, TIME_OF_FLIGHT
     static {
-        shooterPositions.add(new double[]{0.9, 2500, 0.125, 0.55});
-        shooterPositions.add(new double[]{1.0, 2600, 0.15});
-        shooterPositions.add(new double[]{1.1, 2600, 0.225});
-        shooterPositions.add(new double[]{1.2, 2600, 0.225});
-        shooterPositions.add(new double[]{1.3, 2800, 0.3});
-        shooterPositions.add(new double[]{1.4, 2800, 0.3});
-        shooterPositions.add(new double[]{1.5, 2800, 0.325, 0.6});
-        shooterPositions.add(new double[]{1.6, 2900, 0.375});
+        shooterPositions.add(new double[]{0.9, 2600, 0.2 , 0.55});
+        shooterPositions.add(new double[]{1.0, 2600, 0.225});
+        shooterPositions.add(new double[]{1.1, 2650, 0.25});
+        shooterPositions.add(new double[]{1.2, 2700, 0.275});
+        shooterPositions.add(new double[]{1.3, 2700, 0.3});
+        shooterPositions.add(new double[]{1.4, 2750, 0.325});
+        shooterPositions.add(new double[]{1.5, 2800, 0.35, 0.6});
+        shooterPositions.add(new double[]{1.6, 2900, 0.4});
         shooterPositions.add(new double[]{1.7, 3000, 0.4});
-        shooterPositions.add(new double[]{1.8, 3000, 0.425});
-        shooterPositions.add(new double[]{1.9, 3100, 0.45});
-        shooterPositions.add(new double[]{2.0, 3200, 0.5, 0.7});
+        shooterPositions.add(new double[]{1.8, 3000, 0.45});
+        shooterPositions.add(new double[]{1.9, 3100, 0.475});
+        shooterPositions.add(new double[]{2.0, 3150, 0.5, 0.7});
         shooterPositions.add(new double[]{2.1, 3200, 0.525});
         shooterPositions.add(new double[]{2.2, 3300, 0.55});
-        shooterPositions.add(new double[]{2.3, 3400, 0.575});
-        shooterPositions.add(new double[]{2.4, 3450, 0.575});
-        shooterPositions.add(new double[]{2.5, 3550, 0.575, 0.8});
-        shooterPositions.add(new double[]{2.6, 3500, 0.5});
-        shooterPositions.add(new double[]{2.7, 3600, 0.525});
-        shooterPositions.add(new double[]{3.5, 4300, 0.64});
-        shooterPositions.add(new double[]{3.6, 4300, 0.6});
-        shooterPositions.add(new double[]{3.7, 4400, 0.6});
-        shooterPositions.add(new double[]{3.8, 4400, 0.6});
-        shooterPositions.add(new double[]{3.9, 4450, 0.61, 0.8});
-        shooterPositions.add(new double[]{4.0, 4450, 0.625, 0.8});
-        shooterPositions.add(new double[]{4.1, 4450, 0.625, 0.8});
-        shooterPositions.add(new double[]{4.2, 4500, 0.65, 0.8});
+        shooterPositions.add(new double[]{2.3, 3350, 0.575});
+        shooterPositions.add(new double[]{2.4, 3350, 0.6});
+        shooterPositions.add(new double[]{2.5, 3400, 0.6, 0.8});
+        shooterPositions.add(new double[]{2.6, 3500, 0.625});
+        shooterPositions.add(new double[]{2.7, 3500, 0.65});
+        shooterPositions.add(new double[]{3.3, 3800, 0.725});
+        shooterPositions.add(new double[]{3.4, 3900, 0.75});
+        shooterPositions.add(new double[]{3.5, 3900, 0.75});
+        shooterPositions.add(new double[]{3.6, 4000, 0.75});
+        shooterPositions.add(new double[]{3.7, 4000, 0.75});
+        shooterPositions.add(new double[]{3.8, 4050, 0.775});
+        shooterPositions.add(new double[]{3.9, 4100, 0.8, 0.8});
+        shooterPositions.add(new double[]{4.0, 4200, 0.8, 0.8});
+        shooterPositions.add(new double[]{4.1, 4450, 0.8, 0.8});
+
 
 
     }

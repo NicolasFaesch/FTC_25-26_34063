@@ -70,7 +70,7 @@ public class AutoPoses {
     public static AutoPose gateReleasingControlPoint = new AutoPose(5, 20, 90);
 
     // Offen lassen wie gewünscht
-    public static AutoPose gateIntaking     = new AutoPose(10, 54, 130);
+    public static AutoPose gateIntaking     = new AutoPose(12, 54, 120);
     //public static AutoPose gateIntakingTele = new AutoPose(13, 55, 125);
     public static AutoPose gateIntakingTele = new AutoPose(15, 55, 120);
     public static AutoPose gateIntakingSecond = new AutoPose(16.5, 57, 145);

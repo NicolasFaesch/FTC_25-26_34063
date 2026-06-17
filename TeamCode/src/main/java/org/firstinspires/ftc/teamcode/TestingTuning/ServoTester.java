@@ -10,7 +10,7 @@ public class ServoTester extends OpMode {
     Servo hood;
     Servo blocker;
 
-    double hoodPosition = 0.5;
+    double hoodPosition = 0.8;
     double blockerPosition = 0.8;
 
     double step_size = 0.025;

@@ -1,19 +1,12 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import com.arcrobotics.ftclib.util.InterpLUT;
 import com.arcrobotics.ftclib.util.Timing.Timer;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.lib.Constants;
-import org.firstinspires.ftc.teamcode.lib.ShooterLUT;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class Shooter {
 
     // Hood Positions (for manual mode)
-    public static double HOOD_MIN_POSITION = 0.175;
+    public static double HOOD_MIN_POSITION = 0.2;
     public static double HOOD_MAX_POSITION = 0.8;
     public static double HOOD_STEP_SIZE = 0.025;
 
@@ -34,7 +27,7 @@ public class Shooter {
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 100; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 65; // threshold to decide if fast enough to shoot
     public static double SHOOTER_VELOCITY_THRESHOLD_CLOSE = 300;
     public static double SHOOTER_IDLE_VELOCITY = 3000; // Idling speed
 
@@ -169,7 +162,7 @@ public class Shooter {
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {
-                shooterToSpeed &= shooterVelocity > shooterTargetVelocity;//-SHOOTER_VELOCITY_THRESHOLD/4;
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/2;
             }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;
