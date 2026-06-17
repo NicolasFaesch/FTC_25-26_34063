@@ -35,7 +35,7 @@ public class Robot {
 
     protected boolean validShootingPose;
     protected boolean validShootingState;
-    protected boolean blockerChanging;
+    protected boolean blockerClosing;
     protected boolean farSide;
 
 
@@ -50,7 +50,7 @@ public class Robot {
 
         validShootingPose = false;
         validShootingState = false;
-        blockerChanging = false;
+        blockerClosing = false;
         farSide = false;
 
         DynamicAiming.setTargetPose(this.alliance == Alliance.RED ? PoseStorage.targetPoseRed : PoseStorage.targetPoseBlue);
@@ -65,7 +65,7 @@ public class Robot {
     }
 
     protected void update() {
-        blockerChanging = shooter.getBlockerState() == Shooter.BlockerState.DISENGAGING || shooter.getBlockerState() == Shooter.BlockerState.ENGAGING;
+        blockerClosing = shooter.getBlockerState() == Shooter.BlockerState.ENGAGING;
         DynamicAiming.AimingParams aimingParams = DynamicAiming.calculateTargeting(drivetrain.getPose(), drivetrain.getVelocityX(), drivetrain.getVelocityY(), drivetrain.getAngularVelocity());
 
         turret.update(-aimingParams.turretAngle); // turret is inverted
@@ -75,10 +75,9 @@ public class Robot {
         farSide = PositionChecker.checkFarSide(drivetrain.getPose());
         shooter.update(state != State.PARKING ? aimingParams.hoodAngle : Shooter.HOOD_MIN_POSITION, aimingParams.flywheelRpm, validShootingPose, validShootingState, farSide, state==State.OUTTAKING);
 
-        intake.update(blockerChanging, shooter.getReadyToShoot(), farSide);
-        transfer.update(blockerChanging, shooter.getReadyToShoot(), farSide);
-
-
+        boolean readyToShoot = shooter.getReadyToShoot() && (shooter.getBlockerState() == Shooter.BlockerState.DISENGAGED);
+        transfer.update(blockerClosing, readyToShoot, farSide);
+        intake.update(farSide, transfer.getFeedingState());
     }
 
 

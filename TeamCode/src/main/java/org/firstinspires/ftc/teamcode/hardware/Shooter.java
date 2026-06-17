@@ -27,7 +27,7 @@ public class Shooter {
     public static double SHOOTER_MIN_VELOCITY = 2500; // for manual override
     public static double SHOOTER_MAX_VELOCITY = 6000; // for manual override
     public static double SHOOTER_STEP_SIZE = 100; // for manual override
-    public static double SHOOTER_VELOCITY_THRESHOLD = 65; // threshold to decide if fast enough to shoot
+    public static double SHOOTER_VELOCITY_THRESHOLD = 100; // threshold to decide if fast enough to shoot
     public static double SHOOTER_VELOCITY_THRESHOLD_CLOSE = 300;
     public static double SHOOTER_IDLE_VELOCITY = 3000; // Idling speed
 
@@ -162,7 +162,7 @@ public class Shooter {
 
             // extra requirement to reach target velocity when first shooting
             if(blockerState == BlockerState.ENGAGED) {
-                shooterToSpeed &= shooterVelocity > shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/2;
+                shooterToSpeed &= shooterVelocity > shooterTargetVelocity-SHOOTER_VELOCITY_THRESHOLD/4;
             }
             if(shooterToSpeed) {
                 shooterMotorState = ShooterMotorState.UP_TO_SPEED;
@@ -170,8 +170,6 @@ public class Shooter {
                 shooterMotorState = ShooterMotorState.RAMPING;
             }
         }
-
-        readyToShoot = validShootingPose && shooterMotorState == ShooterMotorState.UP_TO_SPEED && validShootingState;
 
         // update blocker state
         if(blockerState == BlockerState.DISENGAGING && blockerTimer.done()) {
@@ -181,6 +179,9 @@ public class Shooter {
         if (blockerState == BlockerState.ENGAGING && blockerTimer.done()) {
             blockerState = BlockerState.ENGAGED;
         }
+
+        // if blocker open and still valid shooting pose we won't close it even if motor velocity outside range
+        readyToShoot = validShootingPose && validShootingState && (shooterMotorState == ShooterMotorState.UP_TO_SPEED || blockerState == BlockerState.DISENGAGED);
 
         // engage or disengage blocker if good to shoot
         if(state == State.SHOOTING && readyToShoot) {

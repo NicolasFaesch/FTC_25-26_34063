@@ -18,7 +18,7 @@ public class Intake {
     public static double STORING_POWER = 0.5;
     public static double DISENGAGING_POWER = 0.4;
     public static double FEEDING_POWER = 0.6;
-    public static double FEEDING_POWER_FAR = 0.4;
+    public static double FEEDING_POWER_FAR = 0.5;
 
     public static long REVERSING_OUTTAKING_TIME_MS = 50;
 
@@ -40,7 +40,7 @@ public class Intake {
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class,"intake");
 
-        intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         intakeMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         intakeMotor.setDirection(DcMotorEx.Direction.REVERSE);
 
@@ -57,9 +57,10 @@ public class Intake {
         return state;
     }
 
-    public void update(boolean blockerChanging, boolean readyToShoot, boolean isFarSide) {
+    public void update(boolean isFarSide, Transfer.FeedingState feedingState) {
         switch(state) {
             case IDLE:
+                intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 intakeMotor.setPower(0);
                 break;
             case INTAKING:
@@ -76,14 +77,22 @@ public class Intake {
                 intakeMotor.setPower(STORING_POWER);
                 break;
             case FEEDING:
-                if (blockerChanging) {
-                    intakeMotor.setPower(DISENGAGING_POWER);
-                } else if (readyToShoot){
-                    intakeMotor.setPower(isFarSide ? FEEDING_POWER_FAR:FEEDING_POWER);
-                } else {
-                    intakeMotor.setPower(STORING_POWER);
+                switch (feedingState) {
+                    case IDLE:
+                        intakeMotor.setPower(STORING_POWER);
+                        break;
+                    case WAITING:
+                        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                        intakeMotor.setPower(0);
+                        break;
+                    case FEEDING:
+                        intakeMotor.setPower(isFarSide ? FEEDING_POWER_FAR:FEEDING_POWER);
+                        break;
+                    case RETRACTING:
+                        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                        intakeMotor.setPower(0);
+                        break;
                 }
-                break;
         }
     }
 
