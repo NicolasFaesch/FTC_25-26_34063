@@ -15,14 +15,15 @@ public class Transfer {
     public static double INTAKING_POWER = 0.3;
     public static double OUTTAKING_POWER = -0.5;
     public static double STORING_POWER = 0.1;
-    public static double DISENGAGING_VELOCITY_NORMED = -0.5;
+    public static double DISENGAGING_VELOCITY_NORMED = -0.1;
     public static double FEEDING_VELOCITY_NORMED = 1.0;
     public static double FEEDING_VELOCITY_NORMED_FAR = 1.0;
 
     // for far shot transfer feeds first, retracts a bit and then waits before next shot
-    public static long FEEDING_TIME_FAR_MS = 100;
-    public static long RETRACTING_TIME_FAR_MS = 50;
-    public static long WAITING_TIME_FAR_MS = 150;
+    public static long FEEDING_TIME_FAR_MS = 80;
+    public static long RETRACTING_TIME_FAR_FIRST_MS = 40;
+    public static long RETRACTING_TIME_FAR_SECOND_MS = 20;
+    public static long WAITING_TIME_FAR_MS = 300;
 
     // motor parameters (DON'T CHANGE)
     private static final double MOTOR_CPR = 28.0;  // encoder counts per revolution
@@ -45,13 +46,15 @@ public class Transfer {
     }
 
     private Timer feeding_far_timer = new Timer(FEEDING_TIME_FAR_MS, TimeUnit.MILLISECONDS);
-    private Timer retracting_far_timer = new Timer(RETRACTING_TIME_FAR_MS, TimeUnit.MILLISECONDS);
+    private Timer retracting_far_timer_first = new Timer(RETRACTING_TIME_FAR_FIRST_MS, TimeUnit.MILLISECONDS);
+    private Timer retracting_far_timer_second = new Timer(RETRACTING_TIME_FAR_SECOND_MS, TimeUnit.MILLISECONDS);
     private Timer waiting_far_timer = new Timer(WAITING_TIME_FAR_MS, TimeUnit.MILLISECONDS);
 
     private State state;
     private FeedingState feedingState;
 
     private DcMotorEx transferMotor;
+    private boolean retractedFarOnce;
 
     public Transfer(HardwareMap hardwareMap) {
         transferMotor = hardwareMap.get(DcMotorEx.class,"transfer");
@@ -62,6 +65,7 @@ public class Transfer {
 
         setState(State.IDLE);
         feedingState = FeedingState.IDLE;
+        retractedFarOnce = false;
     }
     public void setState(State state) {
         if(state != this.state) {
@@ -83,6 +87,7 @@ public class Transfer {
                 transferMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             feedingState = FeedingState.IDLE;
+            retractedFarOnce = false;
         }
         switch(state) {
             case IDLE:
@@ -115,12 +120,24 @@ public class Transfer {
                             case FEEDING:
                                 if (feeding_far_timer.done()) {
                                     feedingState = FeedingState.RETRACTING;
+                                    if(!retractedFarOnce) {
+                                        retracting_far_timer_first.start();
+                                    } else {
+                                        retracting_far_timer_second.start();
+                                    }
                                     transferMotor.setVelocity(normalizedToTPS(DISENGAGING_VELOCITY_NORMED));
-                                    retracting_far_timer.start();
                                 }
                                 break;
                             case RETRACTING:
-                                if(retracting_far_timer.done()) {
+                                boolean doneRetracting = false;
+                                if(retractedFarOnce) {
+                                    doneRetracting = retracting_far_timer_second.done();
+                                } else {
+                                    retractedFarOnce = true;
+                                    doneRetracting = retracting_far_timer_first.done();
+                                }
+
+                                if(doneRetracting) {
                                     feedingState = FeedingState.WAITING;
                                     transferMotor.setVelocity(0);
                                     transferMotor.setPower(0);
