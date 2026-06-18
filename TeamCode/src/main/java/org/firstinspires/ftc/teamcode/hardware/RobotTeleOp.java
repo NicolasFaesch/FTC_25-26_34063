@@ -121,6 +121,12 @@ public class RobotTeleOp extends Robot {
             case PARKING:
                 colorLED.setColor(ColorLED.Color.WHITE);
                 break;
+            case INTAKING:
+                colorLED.setColor(ColorLED.Color.BLUE);
+                break;
+            case OUTTAKING:
+                colorLED.setColor(ColorLED.Color.INDIGO);
+                break;
             default:
                 colorLED.setColor(ColorLED.Color.OFF);
                 break;

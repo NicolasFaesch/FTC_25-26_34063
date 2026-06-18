@@ -14,7 +14,8 @@ public class ColorLED {
         BLUE,
         ORANGE,
         WHITE,
-        PURPLE
+        PURPLE,
+        INDIGO
     }
 
     public ColorLED(HardwareMap hardwareMap) {
@@ -39,6 +40,9 @@ public class ColorLED {
                 break;
             case ORANGE:
                 colorValue = 0.333;
+                break;
+            case INDIGO:
+                colorValue = 0.666;
                 break;
             case PURPLE:
                 colorValue = 0.722;
