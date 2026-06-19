@@ -248,7 +248,7 @@ public class AutoManagement {
                 break;
             case DRIVE_TO_SHOOT:
                 robotAuto.colorLED.setColor(ColorLED.Color.GREEN);
-                if(currentObjective == Objective.SHOOT_START) {
+                if(currentObjective != Objective.LOADING_ZONE) {
                     robotAuto.setState(Robot.State.INTAKING);
 
                  /*}else if(currentObjective == Objective.LOADING_ZONE){
