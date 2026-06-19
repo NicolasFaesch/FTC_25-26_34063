@@ -27,6 +27,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotAuto;
 import org.firstinspires.ftc.teamcode.lib.AutoManagement;
 import org.firstinspires.ftc.teamcode.lib.AutoPoses;
+import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 
 @Autonomous(name = "Auto BLUE Far Configurable", group =  "comp")
@@ -39,7 +40,7 @@ public class AutoBlueFarConfigurable extends OpMode {
     @Override
     public void init() {
 
-        Pose2D startPose = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS,0);
+        Pose2D startPose = PoseStorage.calibPoseBlue;
 
         robotAuto = new RobotAuto(hardwareMap, Robot.Alliance.BLUE, startPose);
         AutoPoses.alliance = AutoPoses.Alliance.BLUE;

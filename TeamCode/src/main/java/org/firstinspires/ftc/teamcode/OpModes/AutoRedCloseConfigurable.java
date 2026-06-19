@@ -29,6 +29,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotAuto;
 import org.firstinspires.ftc.teamcode.lib.AutoManagement;
 import org.firstinspires.ftc.teamcode.lib.AutoPoses;
+import org.firstinspires.ftc.teamcode.lib.PoseStorage;
 
 
 @Autonomous(name = "Auto RED Close Configurable", group =  "comp")
@@ -41,7 +42,7 @@ public class AutoRedCloseConfigurable extends OpMode {
     @Override
     public void init() {
 
-        Pose2D startPose = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS,0);
+        Pose2D startPose = PoseStorage.calibPoseRed;
 
         robotAuto = new RobotAuto(hardwareMap, Robot.Alliance.RED, startPose);
         AutoPoses.alliance = AutoPoses.Alliance.RED;

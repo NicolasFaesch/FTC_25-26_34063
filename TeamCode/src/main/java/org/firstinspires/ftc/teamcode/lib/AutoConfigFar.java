@@ -24,11 +24,11 @@ public class AutoConfigFar {
     @Sorter(sort=8)
     public static AutoManagement.Objective NINTH_OBJECTIVE = AutoManagement.Objective.SHOOT;
     @Sorter(sort=9)
-    public static AutoManagement.Objective TENTH_OBJECTIVE = AutoManagement.Objective.PARK;
+    public static AutoManagement.Objective TENTH_OBJECTIVE = AutoManagement.Objective.LOADING_ZONE;
     @Sorter(sort=10)
-    public static AutoManagement.Objective ELEVENTH_OBJECTIVE = AutoManagement.Objective.NONE;
+    public static AutoManagement.Objective ELEVENTH_OBJECTIVE = AutoManagement.Objective.SHOOT;
     @Sorter(sort=11)
-    public static AutoManagement.Objective TWELVETH_OBJECTIVE = AutoManagement.Objective.NONE;
+    public static AutoManagement.Objective TWELVETH_OBJECTIVE = AutoManagement.Objective.PARK;
 
 
 
